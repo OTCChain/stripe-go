@@ -3,13 +3,17 @@ module github.com/otcChain/chord-go
 go 1.16
 
 require (
-	github.com/libp2p/go-libp2p v0.13.0
+	github.com/google/gopacket v1.1.18 // indirect
+	github.com/google/uuid v1.1.2 // indirect
 	github.com/libp2p/go-libp2p-core v0.8.0
-	github.com/libp2p/go-libp2p-crypto v0.1.0
-	github.com/libp2p/go-libp2p-discovery v0.5.0
-	github.com/libp2p/go-libp2p-kad-dht v0.11.1
 	github.com/libp2p/go-libp2p-pubsub v0.4.0
-	google.golang.org/grpc v1.31.1
-	google.golang.org/protobuf v1.25.0
-	github.com/syndtr/goleveldb v1.0.1-0.20200815110645-5c35d600f0ca
+	github.com/libp2p/go-libp2p-swarm v0.4.0 // indirect
+	github.com/libp2p/go-libp2p-yamux v0.5.1 // indirect
+	github.com/libp2p/go-tcp-transport v0.2.1 // indirect
+	github.com/spf13/cobra v1.1.3
+	go.uber.org/zap v1.16.0 // indirect
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
+	golang.org/x/net v0.0.0-20200813134508-3edf25e44fcc // indirect
+	golang.org/x/sys v0.0.0-20200814200057-3d37ad5750ed // indirect
+	golang.org/x/tools v0.0.0-20191216052735-49a3e744a425 // indirect
 )

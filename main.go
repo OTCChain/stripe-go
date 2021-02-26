@@ -1,8 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/otcChain/chord-go/cmd"
+	"github.com/otcChain/chord-go/consensus"
 	"github.com/otcChain/chord-go/node"
+	"github.com/otcChain/chord-go/p2p"
+	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"os"
 	"os/signal"
@@ -10,21 +16,105 @@ import (
 	"syscall"
 )
 
-type GlobalConf struct {
-	PidPath string
-}
-var globalConf *GlobalConf = &GlobalConf{}
-
-func initConfig(){
-	globalConf.PidPath = ".pid"
+type SysParam struct {
+	version  bool
+	baseDir  string
+	network  string
+	password string
 }
 
-func main()  {
+const (
+	PidFileName = "pid"
+	Version     = "0.1.0"
+)
 
-	initConfig()
+var (
+	param = &SysParam{}
+)
+
+var rootCmd = &cobra.Command{
+	Use: "chord",
+
+	Short: "chord is a decentralized OTC system",
+
+	Long: `usage description::TODO::`,
+
+	Run: mainRun,
+}
+
+func init() {
+
+	rootCmd.Flags().BoolVarP(&param.version, "version",
+		"v", false, "chord -v")
+
+	rootCmd.Flags().StringVarP(&param.network, "network",
+		"n", "jack", "chord -p [PASSWORD]")
+
+	rootCmd.Flags().StringVarP(&param.password, "password",
+		"p", "", "chord -p [PASSWORD]")
+
+	rootCmd.Flags().StringVarP(&param.baseDir, "base directory",
+		"d", cmd.DefaultBaseDir, "chord -d [base directory]")
+
+	rootCmd.AddCommand(cmd.InitCmd)
+	rootCmd.AddCommand(cmd.ShowCmd)
+}
+
+func InitConfig() (err error) {
+	conf := make(map[string]*cmd.StoreCfg)
+	bts, e := ioutil.ReadFile(param.baseDir + "/" + cmd.ConfFileName)
+	if e != nil {
+		return e
+	}
+
+	if err = json.Unmarshal(bts, &conf); err != nil {
+		return
+	}
+
+	result, ok := conf[param.network]
+	if !ok {
+		err = fmt.Errorf("failed to find node config")
+		return
+	}
+
+	fmt.Println(result.String())
+
+	node.InitConfig(result.NCfg)
+	p2p.InitConfig(result.PCfg)
+	consensus.InitConfig(result.CCfg)
+	return
+}
+
+func main() {
+
+	if param.version {
+		fmt.Println(Version)
+		return
+	}
+
+	if err := InitConfig(); err != nil {
+		panic(err)
+	}
+
+	if err := rootCmd.Execute(); err != nil {
+		panic(err)
+	}
+}
+
+func mainRun(_ *cobra.Command, _ []string) {
+
+	var pwd = param.password
+	if pwd == "" {
+		fmt.Println("Password=>")
+		pw, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+		if err != nil {
+			panic(err)
+		}
+		pwd = string(pw)
+	}
 
 	cfg := &node.Config{}
-	if err := node.Inst().Setup(cfg); err != nil{
+	if err := node.Inst().Setup(cfg); err != nil {
 		panic(err)
 	}
 
@@ -37,7 +127,7 @@ func waitSignal(sigCh chan os.Signal) {
 
 	pid := strconv.Itoa(os.Getpid())
 	fmt.Printf("\n>>>>>>>>>>chord node start at pid(%s)<<<<<<<<<<\n", pid)
-	if err := ioutil.WriteFile(globalConf.PidPath, []byte(pid), 0644); err != nil {
+	if err := ioutil.WriteFile(param.baseDir+"/"+PidFileName, []byte(pid), 0644); err != nil {
 		fmt.Print("failed to write running pid", err)
 	}
 
