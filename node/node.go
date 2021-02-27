@@ -12,10 +12,9 @@ func (fe *ChordNodeV1) Setup(cfg *Config) error {
 	return nil
 }
 
-func (fe *ChordNodeV1) Start(){
+func (fe *ChordNodeV1) Start() {
 
 }
-func (fe *ChordNodeV1) ShutDown(){
+func (fe *ChordNodeV1) ShutDown() {
 
 }
-
