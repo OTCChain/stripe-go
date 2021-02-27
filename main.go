@@ -62,7 +62,7 @@ func init() {
 
 func InitConfig() (err error) {
 	conf := make(map[string]*cmd.StoreCfg)
-	bts, e := ioutil.ReadFile(param.baseDir + "/" + cmd.ConfFileName)
+	bts, e := os.ReadFile(param.baseDir + "/" + cmd.ConfFileName)
 	if e != nil {
 		return e
 	}

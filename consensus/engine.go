@@ -1,7 +1,6 @@
 package consensus
 
 type FBFTEngine struct {
-
 }
 
 func newEngine() *FBFTEngine {
