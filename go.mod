@@ -7,12 +7,12 @@ require (
 	github.com/ethereum/go-ethereum v1.9.23
 	github.com/google/gopacket v1.1.18 // indirect
 	github.com/herumi/bls-eth-go-binary v0.0.0-20210226112520-435ed8c04ddd
+	github.com/libp2p/go-libp2p v0.13.0
 	github.com/libp2p/go-libp2p-core v0.8.0
 	github.com/libp2p/go-libp2p-pubsub v0.4.0
-	github.com/libp2p/go-libp2p-swarm v0.4.0 // indirect
-	github.com/libp2p/go-libp2p-yamux v0.5.1 // indirect
-	github.com/libp2p/go-tcp-transport v0.2.1 // indirect
+	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/pkg/errors v0.9.1
+	github.com/rs/zerolog v1.18.0
 	github.com/spf13/cobra v1.1.3
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9

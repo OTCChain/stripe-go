@@ -1,38 +1,49 @@
 package p2p
 
 import (
+	"context"
+	"fmt"
 	"github.com/herumi/bls-eth-go-binary/bls"
+	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	libPS "github.com/libp2p/go-libp2p-pubsub"
+	ma "github.com/multiformats/go-multiaddr"
 	"sync"
 )
 
-////import "github.com/libp2p/go-libp2p"
-//import "github.com/libp2p/go-libp2p-core/host"
-//
-////import "github.com/libp2p/go-libp2p-core/network"
-////import "github.com/libp2p/go-libp2p-core/peer"
-////import "github.com/libp2p/go-libp2p-core/peerstore"
-//import libPS "github.com/libp2p/go-libp2p-pubsub"
-//
-////import "github.com/multiformats/go-multiaddr"
-//import "github.com/herumi/bls-eth-go-binary/bls"
-
 type NetworkV1 struct {
-	host            host.Host
+	p2pHost         host.Host
 	pubSub          *libPS.PubSub
 	priKey          crypto.PrivKey
 	lock            sync.Mutex
 	blockList       libPS.Blacklist
 	ConsensusPubKey *bls.PublicKey
-}
-
-func (nt *NetworkV1) Setup(cfg *Config) error {
-	return nil
+	ctxCancel       context.CancelFunc
 }
 
 func newNetwork() *NetworkV1 {
-	n := &NetworkV1{}
+
+	listenAddr, err := ma.NewMultiaddr(fmt.Sprintf("/tcp/%d", config.Port))
+	if err != nil {
+		panic(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	node, err := libp2p.New(ctx,
+		libp2p.ListenAddrs(listenAddr),
+		libp2p.Ping(false),
+	)
+	n := &NetworkV1{
+		p2pHost:   node,
+		ctxCancel: cancel,
+	}
 	return n
+}
+
+func (nt *NetworkV1) SetUp() error {
+	return nil
+}
+func (nt *NetworkV1) Destroy() error {
+	return nil
 }

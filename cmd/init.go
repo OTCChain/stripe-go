@@ -7,16 +7,23 @@ import (
 	"github.com/otcChain/chord-go/node"
 	"github.com/otcChain/chord-go/p2p"
 	"github.com/otcChain/chord-go/utils"
+	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
-	"io/ioutil"
+	"os"
+	"os/user"
+	"path/filepath"
 )
 
-const ConfFileName = "config.json"
-const DefaultBaseDir = "~/.chord"
+const (
+	DefaultBaseDir = ".chord"
+	ConfFileName   = "config.json"
+	MainNet        = "chord-main"
+	TestNet        = "chord-test"
+)
 
 var param struct {
-	password string
-	baseDir  string
+	baseDir     string
+	servicePort *int16
 }
 
 var InitCmd = &cobra.Command{
@@ -27,64 +34,97 @@ var InitCmd = &cobra.Command{
 	//Args:  cobra.MinimumNArgs(1),
 }
 
-func init() {
-	InitCmd.Flags().StringVarP(&param.password, "password", "p", "",
-		"Password to init chord node wallet")
+func BaseDir(dir string) string {
 
-	InitCmd.Flags().StringVarP(&param.baseDir, "baseDir", "d", "",
-		"Password to init chord node wallet")
-}
-
-func initNode(_ *cobra.Command, _ []string) {
-	dir := param.baseDir
-	if dir == "" {
-		dir = DefaultBaseDir
-	}
-
-	if utils.FileExists(dir) {
-		panic("duplicate init operation! please save the old config or use -baseDir for new node config")
-	}
-
-	//var pwd = param.password
-	//if pwd == "" {
-	//	fmt.Println("Password=>")
-	//	pw, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	pwd = string(pw)
-	//}
-	//
-	//if err := account.NewAccount(param.baseDir, pwd); err != nil {
-	//	panic(err)
-	//}
-
-	defaultConf := &StoreCfg{
-		PCfg: &p2p.Config{},
-		CCfg: &consensus.Config{},
-		NCfg: &node.Config{},
-	}
-	bts, err := json.MarshalIndent(defaultConf, "", "\t")
+	usr, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
 
-	if err := ioutil.WriteFile(param.baseDir+"/"+ConfFileName, bts, 0644); err != nil {
+	baseDir := filepath.Join(usr.HomeDir, string(filepath.Separator), dir)
+	return baseDir
+}
+
+func init() {
+	flags := InitCmd.Flags()
+	flags.StringVarP(&param.baseDir, "baseDir", "d", DefaultBaseDir,
+		"base directory for chord node")
+	param.servicePort = flags.Int16("service-port", p2p.DefaultP2pPort, "chord --service-port [8888]")
+}
+
+func initNode(_ *cobra.Command, _ []string) {
+	dir := BaseDir(param.baseDir)
+	if utils.FileExists(dir) {
+		panic("duplicate init operation! please save the old config or use -baseDir for new node config")
+	}
+
+	if err := os.Mkdir(dir, os.ModePerm); err != nil {
+		panic(err)
+	}
+
+	if err := initDefault(dir); err != nil {
 		panic(err)
 	}
 }
 
-type StoreCfg struct {
+type StoreCfg map[string]*CfgPerNetwork
+
+type CfgPerNetwork struct {
+	Name string            `json:"name"`
 	PCfg *p2p.Config       `json:"p2p"`
 	CCfg *consensus.Config `json:"consensus"`
 	NCfg *node.Config      `json:"node"`
+	UCfg *utils.Config     `json:"utils"`
 }
 
-func (c StoreCfg) String() string {
-	s := fmt.Sprintf("\n===================System config===========================")
+func initDefault(baseDir string) error {
+	conf := make(StoreCfg)
+
+	mainConf := &CfgPerNetwork{
+		Name: MainNet,
+		PCfg: &p2p.Config{Port: *param.servicePort},
+		CCfg: consensus.InitDefaultConfig(),
+		NCfg: node.InitDefaultConfig(),
+		UCfg: &utils.Config{
+			LogLevel: zerolog.ErrorLevel,
+		},
+	}
+	conf[MainNet] = mainConf
+
+	testConf := &CfgPerNetwork{
+		Name: TestNet,
+		PCfg: &p2p.Config{Port: *param.servicePort},
+		CCfg: consensus.InitDefaultConfig(),
+		NCfg: node.InitDefaultConfig(),
+		UCfg: &utils.Config{
+			LogLevel: zerolog.DebugLevel,
+		},
+	}
+	conf[TestNet] = testConf
+
+	bts, err := json.MarshalIndent(conf, "", "\t")
+	if err != nil {
+		panic(err)
+	}
+	path := filepath.Join(baseDir, string(filepath.Separator), ConfFileName)
+	if err := os.WriteFile(path, bts, 0644); err != nil {
+		panic(err)
+	}
+	return nil
+}
+
+func (sc StoreCfg) DebugPrint() {
+	for _, c := range sc {
+		fmt.Println(c)
+	}
+}
+
+func (c CfgPerNetwork) String() string {
+	s := fmt.Sprintf("\n===================System[%s] Config===========================", c.Name)
 	s += c.NCfg.String()
 	s += c.PCfg.String()
 	s += c.CCfg.String()
-	s += fmt.Sprintf("\n===========================================================")
+	s += c.UCfg.String()
+	s += fmt.Sprintf("\n======================================================================")
 	return s
 }

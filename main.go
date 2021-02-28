@@ -7,6 +7,7 @@ import (
 	"github.com/otcChain/chord-go/consensus"
 	"github.com/otcChain/chord-go/node"
 	"github.com/otcChain/chord-go/p2p"
+	"github.com/otcChain/chord-go/utils"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
@@ -58,10 +59,11 @@ func init() {
 
 	rootCmd.AddCommand(cmd.InitCmd)
 	rootCmd.AddCommand(cmd.ShowCmd)
+	rootCmd.AddCommand(cmd.AccCmd)
 }
 
 func InitConfig() (err error) {
-	conf := make(map[string]*cmd.StoreCfg)
+	conf := make(cmd.StoreCfg)
 	bts, e := os.ReadFile(param.baseDir + "/" + cmd.ConfFileName)
 	if e != nil {
 		return e
@@ -82,11 +84,18 @@ func InitConfig() (err error) {
 	node.InitConfig(result.NCfg)
 	p2p.InitConfig(result.PCfg)
 	consensus.InitConfig(result.CCfg)
+	utils.InitConfig(result.UCfg)
 	return
 }
 
 func main() {
 
+	if err := rootCmd.Execute(); err != nil {
+		panic(err)
+	}
+}
+
+func mainRun(_ *cobra.Command, _ []string) {
 	if param.version {
 		fmt.Println(Version)
 		return
@@ -95,13 +104,6 @@ func main() {
 	if err := InitConfig(); err != nil {
 		panic(err)
 	}
-
-	if err := rootCmd.Execute(); err != nil {
-		panic(err)
-	}
-}
-
-func mainRun(_ *cobra.Command, _ []string) {
 
 	var pwd = param.password
 	if pwd == "" {

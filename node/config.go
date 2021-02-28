@@ -16,3 +16,6 @@ var config *Config = nil
 func InitConfig(c *Config) {
 	config = c
 }
+func InitDefaultConfig() *Config {
+	return &Config{}
+}
