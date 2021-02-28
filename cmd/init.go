@@ -17,8 +17,8 @@ import (
 const (
 	DefaultBaseDir = ".chord"
 	ConfFileName   = "config.json"
-	MainNet        = "chord-main"
-	TestNet        = "chord-test"
+	MainNet        = "main"
+	TestNet        = "test"
 )
 
 var param struct {
@@ -120,11 +120,11 @@ func (sc StoreCfg) DebugPrint() {
 }
 
 func (c CfgPerNetwork) String() string {
-	s := fmt.Sprintf("\n===================System[%s] Config===========================", c.Name)
+	s := fmt.Sprintf("\n<<<===================System[%s] Config===========================", c.Name)
 	s += c.NCfg.String()
 	s += c.PCfg.String()
 	s += c.CCfg.String()
 	s += c.UCfg.String()
-	s += fmt.Sprintf("\n======================================================================")
+	s += fmt.Sprintf("\n======================================================================>>>")
 	return s
 }

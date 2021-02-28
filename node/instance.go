@@ -3,7 +3,7 @@ package node
 import "sync"
 
 type ChordNode interface {
-	Setup(*Config) error
+	Setup() error
 	Start()
 	ShutDown()
 }

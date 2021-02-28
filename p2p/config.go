@@ -13,9 +13,9 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n-------------P2p Config------------")
+	s := fmt.Sprintf("\n<-------------P2p Config------------")
 	s += fmt.Sprintf("\nport:%20d", c.Port)
-	s += fmt.Sprintf("\n-----------------------------------")
+	s += fmt.Sprintf("\n----------------------------------->\n")
 	return s
 }
 

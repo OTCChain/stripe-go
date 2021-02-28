@@ -6,8 +6,8 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n-------------Node Config-----------")
-	s += fmt.Sprintf("\n-----------------------------------")
+	s := fmt.Sprintf("\n<-------------Node Config-----------")
+	s += fmt.Sprintf("\n----------------------------------->\n")
 	return s
 }
 

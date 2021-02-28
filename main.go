@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"syscall"
 )
@@ -49,7 +50,8 @@ func init() {
 		"v", false, "chord -v")
 
 	rootCmd.Flags().StringVarP(&param.network, "network",
-		"n", "jack", "chord -p [PASSWORD]")
+		"n", cmd.TestNet,
+		"chord -n|--network ["+cmd.MainNet+"|"+cmd.TestNet+"] default is "+cmd.TestNet+".")
 
 	rootCmd.Flags().StringVarP(&param.password, "password",
 		"p", "", "chord -p [PASSWORD]")
@@ -64,7 +66,8 @@ func init() {
 
 func InitConfig() (err error) {
 	conf := make(cmd.StoreCfg)
-	bts, e := os.ReadFile(param.baseDir + "/" + cmd.ConfFileName)
+	dir := cmd.BaseDir(param.baseDir)
+	bts, e := os.ReadFile(dir + "/" + cmd.ConfFileName)
 	if e != nil {
 		return e
 	}
@@ -89,7 +92,6 @@ func InitConfig() (err error) {
 }
 
 func main() {
-
 	if err := rootCmd.Execute(); err != nil {
 		panic(err)
 	}
@@ -115,8 +117,7 @@ func mainRun(_ *cobra.Command, _ []string) {
 		pwd = string(pw)
 	}
 
-	cfg := &node.Config{}
-	if err := node.Inst().Setup(cfg); err != nil {
+	if err := node.Inst().Setup(); err != nil {
 		panic(err)
 	}
 
@@ -129,7 +130,8 @@ func waitSignal(sigCh chan os.Signal) {
 
 	pid := strconv.Itoa(os.Getpid())
 	fmt.Printf("\n>>>>>>>>>>chord node start at pid(%s)<<<<<<<<<<\n", pid)
-	if err := ioutil.WriteFile(param.baseDir+"/"+PidFileName, []byte(pid), 0644); err != nil {
+	path := filepath.Join(cmd.BaseDir(param.baseDir), string(filepath.Separator), PidFileName)
+	if err := ioutil.WriteFile(path, []byte(pid), 0644); err != nil {
 		fmt.Print("failed to write running pid", err)
 	}
 
