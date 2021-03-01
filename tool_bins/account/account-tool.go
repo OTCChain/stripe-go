@@ -6,8 +6,8 @@ import (
 )
 
 func main() {
-	dir := flag.String("dir", ".", "directory to save key file")
-	password := flag.String("pw", "", "password to encrypt the key file")
+	dir := flag.String("dir", ".", "use -dir=[Directory] to save file to [Directory]")
+	password := flag.String("pw", "", "use -pw=123")
 
 	flag.Parse()
 

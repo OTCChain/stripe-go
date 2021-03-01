@@ -13,6 +13,8 @@ const (
 	PriKeyLen = 32
 )
 
+type FedKey bls.SecretKey
+
 type Key struct {
 	ID         uuid.UUID
 	Light      bool
