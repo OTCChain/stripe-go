@@ -73,7 +73,7 @@ func NewLightKeyStore(path string, isLight bool) *KeyStore {
 
 func keyFileFormat(keyAddr common.Address) string {
 	ts := time.Now().UTC()
-	return fmt.Sprintf("UTC--%s--%s", utils.ToISO8601(ts), hex.EncodeToString(keyAddr[:]))
+	return fmt.Sprintf("UTC--%s--%s", utils.ToISO8601(ts), keyAddr.String())
 }
 
 func (ks KeyStore) GetKey(addr common.Address, filename, auth string) (*Key, error) {
@@ -93,12 +93,13 @@ func (ks KeyStore) GetKey(addr common.Address, filename, auth string) (*Key, err
 	return key, nil
 }
 
-func (ks KeyStore) StoreKey(filename string, key *Key, auth string) error {
+func (ks KeyStore) StoreKey(key *Key, auth string) error {
 	keyJson, err := EncryptKey(key, auth, ks.scryptN, ks.scryptP)
 	if err != nil {
 		return err
 	}
-	return utils.WriteKeyFile(filename, keyJson)
+	path := ks.JoinPath(keyFileFormat(key.Address))
+	return utils.WriteKeyFile(path, keyJson)
 }
 
 func (ks KeyStore) JoinPath(filename string) string {
@@ -118,12 +119,12 @@ func EncryptKey(key *Key, auth string, scryptN, scryptP int) ([]byte, error) {
 		return nil, err
 	}
 	encryptedKeyJSON := encryptedKeyJSON{
-		hex.EncodeToString(key.Address[:]),
+		key.Address.String(),
 		cryptoStruct,
 		key.ID.String(),
 		version,
 	}
-	return json.Marshal(encryptedKeyJSON)
+	return json.MarshalIndent(encryptedKeyJSON, "", "\t")
 }
 
 func EncryptData(data, auth []byte, scryptN, scryptP int) (CryptoJSON, error) {

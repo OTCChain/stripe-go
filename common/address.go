@@ -44,11 +44,17 @@ func decodeAndConvert(addrStr string) (string, []byte, error) {
 
 func IsFedAddress(s string) bool {
 	hrp, bytes, err := decodeAndConvert(s)
-	fmt.Println(hrp, bytes, err, len(bytes))
 	if err != nil || (hrp != ChordAddressHRP) || len(bytes) != AddressLength {
 		return false
 	}
 	return true
+}
+func HexToAddress(s string) (addr Address) {
+	hrp, bytes, err := decodeAndConvert(s)
+	if err != nil || (hrp != ChordAddressHRP) || len(bytes) != AddressLength {
+		return
+	}
+	return BytesToAddress(bytes)
 }
 
 func (a Address) Hex() string {

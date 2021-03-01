@@ -107,9 +107,12 @@ func (k *Key) Encrypt(auth string) ([]byte, error) {
 	}
 }
 
-func (k *Key) SaveToPath(auth, dir string) error {
-	ks := NewLightKeyStore(dir, k.Light)
-	return ks.StoreKey(keyFileFormat(k.Address), k, auth)
+func (k *Key) isOpen() bool {
+	return k.PrivateKey == nil
+}
+
+func (k *Key) close() {
+	k.PrivateKey = nil
 }
 
 func GenerateKey() *bls.SecretKey {
