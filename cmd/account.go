@@ -12,16 +12,16 @@ var accParam struct {
 }
 
 var AccCmd = &cobra.Command{
-	Use:   "account",
-	Short: "create chord account",
+	Use:   "wallet",
+	Short: "create chord wallet",
 	Long:  `TODO::.`,
 	Run:   showAccounts,
 	//Args:  cobra.MinimumNArgs(1),
 }
 
 var AccCreateCmd = &cobra.Command{
-	Use:   "account",
-	Short: "create chord account",
+	Use:   "wallet",
+	Short: "create chord wallet",
 	Long:  `TODO::.`,
 	Run:   createAcc,
 	//Args:  cobra.MinimumNArgs(1),
@@ -29,7 +29,7 @@ var AccCreateCmd = &cobra.Command{
 
 func init() {
 	AccCreateCmd.Flags().StringVarP(&accParam.password, "password", "p", "",
-		"Password to create chord node account")
+		"Password to create chord node wallet")
 	AccCmd.AddCommand(AccCreateCmd)
 }
 

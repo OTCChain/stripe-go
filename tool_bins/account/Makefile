@@ -4,7 +4,7 @@ GOBUILD=CGO_ENABLED=0 go build -ldflags '-w -s'
 
 PLATFORM := $(shell uname -o)
 
-NAME := chord.exe
+NAME := chord_acc.exe
 OS := windows
 
 ifeq ($(PLATFORM), Msys)
@@ -13,7 +13,7 @@ else ifeq ($(PLATFORM), Cygwin)
     INCLUDE := ${shell echo "$(GOPATH)"|sed -e 's/\\/\//g'}
 else
 	INCLUDE := $(GOPATH)
-	NAME=chord
+	NAME=chord_acc
 	OS=linux
 endif
 
@@ -21,28 +21,13 @@ endif
 .SECONDEXPANSION:
 
 .PHONY: all
-.PHONY: pbs
-.PHONY: test
 
 BINDIR=$(INCLUDE)/bin
 
-all: pbs build
+all: build
 
 build:
 	GOOS=$(OS) GOARCH=amd64 $(GOBUILD) -o $(BINDIR)/$(NAME)
-
-pbs:
-	cd pbs/ && $(MAKE)
-
-target:=mac
-
-boot:
-	cd p2p/bootnode/ && $(MAKE) $(target)
-
-acc_tool:
-	cd tools/account/ && $(MAKE) $(target)
-
-tools: acc_tool
 
 mac:
 	GOOS=darwin go build -ldflags '-w -s' -o $(BINDIR)/$(NAME).mac
@@ -52,9 +37,6 @@ linux: pbs
 	GOOS=linux GOARCH=amd64 go build -ldflags '-w -s' -o $(BINDIR)/$(NAME).lnx
 win: pbs
 	GOOS=windows GOARCH=amd64 go build -ldflags '-w -s' -o $(BINDIR)/$(NAME).exe
-
-sol:
-	cd eth/generated/ && $(MAKE)
 
 clean:
 	rm $(BINDIR)/$(NAME)

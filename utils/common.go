@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"github.com/herumi/bls-eth-go-binary/bls"
 	"github.com/rs/zerolog"
+	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
+	"time"
 )
 
 func init() {
@@ -57,4 +60,46 @@ var config *Config = nil
 
 func InitConfig(c *Config) {
 	config = c
+}
+
+func writeTemporaryKeyFile(file string, content []byte) (string, error) {
+	// Create the keystore directory with appropriate permissions
+	// in case it is not present yet.
+	const dirPerm = 0700
+	if err := os.MkdirAll(filepath.Dir(file), dirPerm); err != nil {
+		return "", err
+	}
+	// Atomic write: create a temporary hidden file first
+	// then move it into place. TempFile assigns mode 0600.
+	f, err := ioutil.TempFile(filepath.Dir(file), "."+filepath.Base(file)+".tmp")
+	if err != nil {
+		return "", err
+	}
+	if _, err := f.Write(content); err != nil {
+		_ = f.Close()
+		_ = os.Remove(f.Name())
+		return "", err
+	}
+	_ = f.Close()
+	return f.Name(), nil
+}
+
+func WriteKeyFile(file string, content []byte) error {
+	name, err := writeTemporaryKeyFile(file, content)
+	if err != nil {
+		return err
+	}
+	return os.Rename(name, file)
+}
+
+func ToISO8601(t time.Time) string {
+	var tz string
+	name, offset := t.Zone()
+	if name == "UTC" {
+		tz = "Z"
+	} else {
+		tz = fmt.Sprintf("%03d00", offset/3600)
+	}
+	return fmt.Sprintf("%04d-%02d-%02dT%02d-%02d-%02d.%09d%s",
+		t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), tz)
 }

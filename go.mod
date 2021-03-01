@@ -11,7 +11,7 @@ require (
 	github.com/libp2p/go-libp2p-core v0.8.0
 	github.com/libp2p/go-libp2p-pubsub v0.4.0
 	github.com/multiformats/go-multiaddr v0.3.1
-	github.com/pkg/errors v0.9.1
+	github.com/pborman/uuid v1.2.0
 	github.com/rs/zerolog v1.18.0
 	github.com/spf13/cobra v1.1.3
 	go.uber.org/zap v1.16.0 // indirect
