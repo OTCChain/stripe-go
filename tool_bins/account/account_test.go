@@ -91,3 +91,19 @@ func TestDecode(t *testing.T) {
 	sig := sec.SignByte(msg)
 	fmt.Printf("sig:%x\n", sig.Serialize())
 }
+
+func TestLoadKey(t *testing.T) {
+	var auth = "123"
+	ks := wallet.NewLightKeyStore("", true)
+	path := ks.JoinPath("UTC--2021-03-01T08-34-08.662288000Z--fed1djkthhrcql2f540fypqyp5df99s73dmwaafxkv")
+	addr := common.HexToAddress("fed1djkthhrcql2f540fypqyp5df99s73dmwaafxkv")
+	key, err := ks.GetKey(addr, path, auth)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(key)
+	if key.Address != addr {
+		t.Fatal("load key failed")
+	}
+	t.Log("=====>TestLoadKey success", key.Address.String())
+}
