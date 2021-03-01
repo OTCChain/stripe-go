@@ -55,16 +55,20 @@ type KeyStore struct {
 	scryptP     int
 }
 
-func NewLightKeyStore(path string, isLight bool) *KeyStore {
+func NewKeyStore(dir string) *KeyStore {
+	return NewLightKeyStore(dir, false)
+}
+
+func NewLightKeyStore(dir string, isLight bool) *KeyStore {
 	if isLight {
 		return &KeyStore{
-			keysDirPath: path,
+			keysDirPath: dir,
 			scryptN:     LightScryptN,
 			scryptP:     LightScryptP,
 		}
 	} else {
 		return &KeyStore{
-			keysDirPath: path,
+			keysDirPath: dir,
 			scryptN:     StandardScryptN,
 			scryptP:     StandardScryptP,
 		}

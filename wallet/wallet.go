@@ -2,9 +2,19 @@ package wallet
 
 import (
 	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/herumi/bls-eth-go-binary/bls"
 	"github.com/otcChain/chord-go/common"
 	"math/big"
 )
+
+func init() {
+	if err := bls.Init(bls.BLS12_381); err != nil {
+		panic(err)
+	}
+	if err := bls.SetETHmode(bls.EthModeDraft07); err != nil {
+		panic(err)
+	}
+}
 
 type Wallet interface {
 	URL() string

@@ -40,7 +40,7 @@ boot:
 	cd p2p/bootnode/ && $(MAKE) $(target)
 
 acc_tool:
-	cd tools/account/ && $(MAKE) $(target)
+	cd tool_bins/account/ && $(MAKE) $(target)
 
 tools: acc_tool
 
