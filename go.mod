@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/herumi/bls-eth-go-binary v0.0.0-20210226112520-435ed8c04ddd
+	github.com/ipfs/go-log/v2 v2.1.1
 	github.com/libp2p/go-libp2p v0.13.0
 	github.com/libp2p/go-libp2p-core v0.8.0
 	github.com/libp2p/go-libp2p-discovery v0.5.0

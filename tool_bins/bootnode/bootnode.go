@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -47,6 +48,7 @@ func (bh *BootHost) bootStrap(conf *BootConfig) {
 }
 
 func main() {
+	log.SetAllLoggers(log.LevelDebug)
 	conf := loadConfig()
 	p2pPriKey := conf.loadKey()
 
