@@ -95,7 +95,9 @@ func main() {
 	}
 
 	for _, id := range []string{
-		"/ip4/192.168.30.13/tcp/8888/p2p/12D3KooWRDCMDA11ypS2FM5ZxgG8QRMmuFTxExhcz9XixW2JMVSX",
+		//"/ip4/192.168.30.13/tcp/8888/p2p/12D3KooWRDCMDA11ypS2FM5ZxgG8QRMmuFTxExhcz9XixW2JMVSX",
+		//"/ip4/192.168.30.214/tcp/8888/p2p/12D3KooWBVTZ6qpuf2B5NqRrVxxDxUM7oPVWcdHa292SundjQpHH",
+		"/ip4/202.182.101.145/tcp/8888/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe",
 	} {
 		addr, err := ma.NewMultiaddr(id)
 		if err != nil {

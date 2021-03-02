@@ -13,7 +13,7 @@ func main() {
 	password := flag.String("p", "", "use -p=[PASSWORD]")
 
 	flag.Parse()
-	helpStr := "chord_acc.[mac|lnx|arm|exe] -d [Directory to save account] -pw [Password of the wallet key]"
+	helpStr := "chord_acc.[mac|lnx|arm|exe] -d [Directory to save account] -p [Password of the wallet key]"
 	if *help {
 		fmt.Println(helpStr)
 		os.Exit(0)
