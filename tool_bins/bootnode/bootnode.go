@@ -37,7 +37,7 @@ func (bh *BootHost) bootStrap(conf *BootConfig) {
 		go func() {
 			defer wg.Done()
 			if err := bh.host.Connect(bh.ctx, *peerInfo); err != nil {
-				fmt.Println("Connect to boot strap err:", err)
+				fmt.Println("Connect to boot strap err:", err, peerInfo)
 			} else {
 				fmt.Println("Connection established with bootstrap node:", *peerInfo)
 			}

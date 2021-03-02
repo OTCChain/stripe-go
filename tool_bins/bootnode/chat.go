@@ -64,6 +64,7 @@ func handleStream(stream network.Stream) {
 }
 func (bh *BootHost) chat() {
 	bh.host.SetStreamHandler(ProtocolID, handleStream)
+
 	fmt.Println("Announcing ourselves...")
 	disc := discovery.NewRoutingDiscovery(bh.dht)
 	bh.discovery = disc
