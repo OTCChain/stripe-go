@@ -30,8 +30,8 @@ func readData(rw *bufio.ReadWriter) {
 	for {
 		str, err := rw.ReadString('\n')
 		if err != nil {
-			fmt.Println("Error reading from buffer")
-			panic(err)
+			fmt.Println("Error reading from buffer", err)
+			return
 		}
 
 		if str == "" {
@@ -53,19 +53,18 @@ func writeData(rw *bufio.ReadWriter) {
 		fmt.Print("> ")
 		sendData, err := stdReader.ReadString('\n')
 		if err != nil {
-			fmt.Println("Error reading from stdin")
-			panic(err)
+			fmt.Println("Error reading from stdin", err)
+			return
 		}
 
 		_, err = rw.WriteString(fmt.Sprintf("%s\n", sendData))
 		if err != nil {
-			fmt.Println("Error writing to buffer")
-			panic(err)
+			fmt.Println("Error writing to buffer", err)
+			return
 		}
 		err = rw.Flush()
 		if err != nil {
-			fmt.Println("Error flushing buffer")
-			panic(err)
+			fmt.Println("Error flushing buffer", err)
 		}
 	}
 }
