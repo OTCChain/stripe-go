@@ -89,6 +89,6 @@ func main() {
 	if conf.Chat {
 		bootHost.chat()
 	}
-
+	fmt.Println("=======>>boot node setup")
 	select {}
 }

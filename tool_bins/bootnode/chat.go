@@ -62,20 +62,9 @@ func handleStream(stream network.Stream) {
 
 	// 'stream' will stay open until you close it (or the other side closes it).
 }
-func (bh *BootHost) chat() {
-	bh.host.SetStreamHandler(ProtocolID, handleStream)
-
-	fmt.Println("Announcing ourselves...")
-	disc := discovery.NewRoutingDiscovery(bh.dht)
-	bh.discovery = disc
-	duration, err := disc.Advertise(bh.ctx, RendezvousID)
-	if err != nil {
-		fmt.Println("advertise self err:", err)
-	}
-	fmt.Println("Announcing ourselves...", duration)
+func (bh *BootHost) findPeers() {
 	fmt.Println("Searching for other peers...")
-
-	peerChan, err := disc.FindPeers(bh.ctx, RendezvousID)
+	peerChan, err := bh.discovery.FindPeers(bh.ctx, RendezvousID)
 	if err != nil {
 		panic(err)
 	}
@@ -100,8 +89,20 @@ func (bh *BootHost) chat() {
 
 		fmt.Println("Connected to:", peerAddr)
 	}
-	fmt.Println("=======>>boot node setup")
+}
 
+func (bh *BootHost) chat() {
+	bh.host.SetStreamHandler(ProtocolID, handleStream)
+	fmt.Println("Announcing ourselves...")
+	disc := discovery.NewRoutingDiscovery(bh.dht)
+	bh.discovery = disc
+	duration, err := disc.Advertise(bh.ctx, RendezvousID)
+	if err != nil {
+		fmt.Println("advertise self err:", err)
+		panic(err)
+	}
+
+	fmt.Println("Announcing ourselves...", duration)
 	stdReader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("> ")
@@ -109,6 +110,9 @@ func (bh *BootHost) chat() {
 		if err != nil {
 			fmt.Println("Error reading from stdin", err)
 			continue
+		}
+		if len(inputCh) == 0 {
+			fmt.Println("======>there is no stream at all")
 		}
 		for _, ch := range inputCh {
 			ch <- sendData
