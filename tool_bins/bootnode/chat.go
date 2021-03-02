@@ -103,6 +103,9 @@ func (bh *BootHost) chat() {
 	}
 
 	fmt.Println("Announcing ourselves...", duration)
+
+	bh.findPeers()
+
 	stdReader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("> ")
@@ -113,6 +116,7 @@ func (bh *BootHost) chat() {
 		}
 		if len(inputCh) == 0 {
 			fmt.Println("======>there is no stream at all")
+			bh.findPeers()
 		}
 		for _, ch := range inputCh {
 			ch <- sendData
