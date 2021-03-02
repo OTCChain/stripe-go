@@ -3,7 +3,6 @@ package common
 import (
 	"fmt"
 	"github.com/btcsuite/btcutil/bech32"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/herumi/bls-eth-go-binary/bls"
 )
 
@@ -76,5 +75,5 @@ func BytesToAddress(b []byte) Address {
 
 func PubKeyToAddr(p *bls.PublicKey) Address {
 	pubBytes := p.Serialize()
-	return BytesToAddress(crypto.Keccak256(pubBytes[1:])[12:])
+	return BytesToAddress(Keccak256(pubBytes[1:])[12:])
 }

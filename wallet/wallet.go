@@ -1,7 +1,6 @@
 package wallet
 
 import (
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/herumi/bls-eth-go-binary/bls"
 	"github.com/otcChain/chord-go/common"
 	"math/big"
@@ -22,7 +21,6 @@ type Wallet interface {
 	Close() error
 	Keys() []Key
 	Contains(key Key) bool
-	Derive(path accounts.DerivationPath, pin bool) (Key, error)
 	SignData(account Key, mimeType string, data []byte) ([]byte, error)
 	SignDataWithPassphrase(key Key, passphrase, mimeType string, data []byte) ([]byte, error)
 	SignText(key Key, text []byte) ([]byte, error)
