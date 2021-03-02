@@ -12,7 +12,7 @@ import (
 var (
 	ProtocolID   = protocol.ID("/chord/boot")
 	RendezvousID = "block_syncing"
-	inputCh      = make([]chan string, 0)
+	inputCh      = make(map[string]chan string, 0)
 )
 
 func readData(rw *bufio.ReadWriter) {
@@ -35,18 +35,19 @@ func readData(rw *bufio.ReadWriter) {
 	}
 }
 
-func writeData(rw *bufio.ReadWriter, ch <-chan string) {
-
+func writeData(rw *bufio.ReadWriter, ch <-chan string, id string) {
+	defer delete(inputCh, id)
 	for {
 		sendData := <-ch
 		_, err := rw.WriteString(fmt.Sprintf("%s\n", sendData))
 		if err != nil {
-			fmt.Println("Error writing to buffer", err)
+			fmt.Println("Error writing to buffer", id, err)
 			return
 		}
 		err = rw.Flush()
 		if err != nil {
-			fmt.Println("Error flushing buffer", err)
+			fmt.Println("Error flushing buffer", id, err)
+			return
 		}
 	}
 }
@@ -57,8 +58,8 @@ func handleStream(stream network.Stream) {
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 	in := make(chan string)
 	go readData(rw)
-	go writeData(rw, in)
-	inputCh = append(inputCh, in)
+	go writeData(rw, in, stream.ID())
+	inputCh[stream.ID()] = in
 
 	// 'stream' will stay open until you close it (or the other side closes it).
 }
@@ -94,9 +95,9 @@ func (bh *BootHost) chat() {
 		rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
 		in := make(chan string)
-		go writeData(rw, in)
+		go writeData(rw, in, stream.ID())
 		go readData(rw)
-		inputCh = append(inputCh, in)
+		inputCh[stream.ID()] = in
 
 		fmt.Println("Connected to:", peerAddr)
 	}
