@@ -107,9 +107,9 @@ func loadConfig() *BootConfig {
 }
 func (conf *BootConfig) String() string {
 	s := fmt.Sprintf("\n==============boot config==============")
-	s += fmt.Sprintf("\nKeyPath  %20.s", conf.KeyPath)
-	s += fmt.Sprintf("\nwith chat test%20.t", conf.Chat)
-	s += fmt.Sprintf("\nno password   %20.t", conf.Password == "")
+	s += fmt.Sprintf("\nKeyPath		%s", conf.KeyPath)
+	s += fmt.Sprintf("\nwith chat test	%t", conf.Chat)
+	s += fmt.Sprintf("\nno password   	%t", conf.Password == "")
 	s += fmt.Sprintf("\n|--------boot strap node peers(%d)\n|", len(conf.Boots))
 	for i, boot := range conf.Boots {
 		s += fmt.Sprintf("\n|node[%d]=%s", i, boot)
