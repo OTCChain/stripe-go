@@ -79,7 +79,7 @@ func main() {
 
 	help := flag.Bool("h", false, "boot_node.[mac|lnx|arm|exe] -h")
 
-	isBoot := flag.Bool("h", false, "boot_node.[mac|lnx|arm|exe] -b")
+	isBoot := flag.Bool("b", false, "boot_node.[mac|lnx|arm|exe] -b")
 
 	filePath := flag.String("f", ".", "use -f=[FILEPATH] to load the key file")
 	password := flag.String("p", "", "use -p=[PWD]  [PWD] is the password for the key file")
