@@ -1,9 +1,11 @@
 package wallet
 
 import (
+	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"github.com/herumi/bls-eth-go-binary/bls"
+	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/otcChain/chord-go/common"
 	"github.com/pborman/uuid"
 )
@@ -115,6 +117,12 @@ func (k *Key) isOpen() bool {
 
 func (k *Key) close() {
 	k.PrivateKey = nil
+}
+
+func (k *Key) CastP2pKey() (crypto.PrivKey, error) {
+	pri := k.PrivateKey.Serialize()
+	var edPri = ed25519.NewKeyFromSeed(pri)
+	return crypto.UnmarshalEd25519PrivateKey(edPri[:])
 }
 
 func GenerateKey() *bls.SecretKey {

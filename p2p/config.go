@@ -19,7 +19,9 @@ func (c Config) String() string {
 	return s
 }
 
-var config *Config = nil
+var config *Config = &Config{
+	Port: DefaultP2pPort,
+}
 
 func InitConfig(c *Config) {
 	config = c

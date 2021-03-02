@@ -79,6 +79,20 @@ func keyFileFormat(keyAddr common.Address) string {
 	return fmt.Sprintf("UTC--%s--%s", utils.ToISO8601(ts), keyAddr.String())
 }
 
+func (ks KeyStore) GetRawKey(filename, auth string) (*Key, error) {
+	// Load the key from the keystore and decrypt its contents
+	keyJson, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	key, err := DecryptKey(keyJson, auth)
+	if err != nil {
+		return nil, err
+	}
+	// Make sure we're really operating on the requested key (no swap attacks)
+	return key, nil
+}
+
 func (ks KeyStore) GetKey(addr common.Address, filename, auth string) (*Key, error) {
 	// Load the key from the keystore and decrypt its contents
 	keyJson, err := ioutil.ReadFile(filename)

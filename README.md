@@ -15,3 +15,7 @@ make linux|mac|arm|win
 ```bash
 make acc_tool target=linux|mac|arm|win
 ```
+###make boot node for p2p network
+```bash
+make boot target=linux|mac|arm|win
+```

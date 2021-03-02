@@ -4,7 +4,7 @@ GOBUILD=CGO_ENABLED=0 go build -ldflags '-w -s'
 
 PLATFORM := $(shell uname -o)
 
-NAME := bootnode.exe
+NAME := boot_node.exe
 OS := windows
 
 ifeq ($(PLATFORM), Msys)
@@ -13,7 +13,7 @@ else ifeq ($(PLATFORM), Cygwin)
     INCLUDE := ${shell echo "$(GOPATH)"|sed -e 's/\\/\//g'}
 else
 	INCLUDE := $(GOPATH)
-	NAME=bootnode
+	NAME=boot_node
 	OS=linux
 endif
 

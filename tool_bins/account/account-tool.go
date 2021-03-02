@@ -2,17 +2,25 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/otcChain/chord-go/wallet"
+	"os"
 )
 
 func main() {
-	dir := flag.String("dir", ".", "use -dir=[Directory] to save file to [Directory]")
-	password := flag.String("pw", "", "use -pw=123")
+	help := flag.Bool("h", false, "chord_acc.[mac|lnx|arm|exe] -h")
+	dir := flag.String("d", ".", "use -d=[Directory] to save file to [Directory]")
+	password := flag.String("p", "", "use -p=[PASSWORD]")
 
 	flag.Parse()
+	helpStr := "chord_acc.[mac|lnx|arm|exe] -d [Directory to save account] -pw [Password of the wallet key]"
+	if *help {
+		fmt.Println(helpStr)
+		os.Exit(0)
+	}
 
 	if *password == "" {
-		panic("password can't be empty")
+		panic(helpStr)
 	}
 
 	key := wallet.NewKey()

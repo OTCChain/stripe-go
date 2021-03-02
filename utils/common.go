@@ -56,7 +56,9 @@ func (c Config) String() string {
 	return s
 }
 
-var config *Config = nil
+var config *Config = &Config{
+	LogLevel: zerolog.DebugLevel,
+}
 
 func InitConfig(c *Config) {
 	config = c
