@@ -24,6 +24,7 @@ var (
 	ProtocolID     = protocol.ID("/chord/boot")
 	BootstrapPeers addrList
 	RendezvousID   = "block_syncing"
+	inputCh        = make([]chan string, 0)
 )
 
 func readData(rw *bufio.ReadWriter) {
@@ -46,18 +47,11 @@ func readData(rw *bufio.ReadWriter) {
 	}
 }
 
-func writeData(rw *bufio.ReadWriter) {
-	stdReader := bufio.NewReader(os.Stdin)
+func writeData(rw *bufio.ReadWriter, ch <-chan string) {
 
 	for {
-		fmt.Print("> ")
-		sendData, err := stdReader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading from stdin", err)
-			return
-		}
-
-		_, err = rw.WriteString(fmt.Sprintf("%s\n", sendData))
+		sendData := <-ch
+		_, err := rw.WriteString(fmt.Sprintf("%s\n", sendData))
 		if err != nil {
 			fmt.Println("Error writing to buffer", err)
 			return
@@ -73,9 +67,10 @@ func handleStream(stream network.Stream) {
 
 	// Create a buffer stream for non blocking read and write.
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-
+	in := make(chan string)
 	go readData(rw)
-	go writeData(rw)
+	go writeData(rw, in)
+	inputCh = append(inputCh, in)
 
 	// 'stream' will stay open until you close it (or the other side closes it).
 }
@@ -83,6 +78,9 @@ func handleStream(stream network.Stream) {
 func main() {
 
 	help := flag.Bool("h", false, "boot_node.[mac|lnx|arm|exe] -h")
+
+	isBoot := flag.Bool("h", false, "boot_node.[mac|lnx|arm|exe] -b")
+
 	filePath := flag.String("f", ".", "use -f=[FILEPATH] to load the key file")
 	password := flag.String("p", "", "use -p=[PWD]  [PWD] is the password for the key file")
 	flag.Parse()
@@ -164,6 +162,10 @@ func main() {
 		}()
 	}
 	wg.Wait()
+	if *isBoot {
+		select {}
+		return
+	}
 
 	fmt.Println("Announcing ourselves...")
 	discovery := dis.NewRoutingDiscovery(kademliaDHT)
@@ -178,6 +180,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	for peerAddr := range peerChan {
 		if peerAddr.ID == p2pHost.ID() {
 			fmt.Println("eee myself...")
@@ -191,11 +194,24 @@ func main() {
 		}
 		rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
-		go writeData(rw)
+		in := make(chan string)
+		go writeData(rw, in)
 		go readData(rw)
+		inputCh = append(inputCh, in)
 
 		fmt.Println("Connected to:", peerAddr)
 	}
 	fmt.Println("=======>>boot node setup")
-	select {}
+	stdReader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print("> ")
+		sendData, err := stdReader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading from stdin", err)
+			return
+		}
+		for _, ch := range inputCh {
+			ch <- sendData
+		}
+	}
 }
