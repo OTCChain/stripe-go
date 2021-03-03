@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/otcChain/chord-go/cmd"
-	"github.com/otcChain/chord-go/common/fdlimit"
 	"github.com/otcChain/chord-go/node"
 	rpcCmd "github.com/otcChain/chord-go/rpc/cmd"
 	"github.com/otcChain/chord-go/utils"
+	"github.com/otcChain/chord-go/utils/fdlimit"
 	"github.com/otcChain/chord-go/wallet"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
