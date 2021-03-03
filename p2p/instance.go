@@ -16,3 +16,17 @@ func Inst() ChordNetwork {
 	})
 	return _instance
 }
+
+type MessageChannel string
+
+func (mc MessageChannel) String() string {
+	return string(mc)
+}
+
+const (
+	MSConsensus MessageChannel = "/0.1/Global/CONSENSUS"
+	MSClientRpc MessageChannel = "/0.1/Global/CLIENT"
+	MSDebug     MessageChannel = "/0.1/Global/TEST"
+)
+
+var SystemTopics = []MessageChannel{MSConsensus, MSClientRpc, MSDebug}

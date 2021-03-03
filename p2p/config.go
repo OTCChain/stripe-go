@@ -12,6 +12,7 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/otcChain/chord-go/utils"
 	"github.com/otcChain/chord-go/wallet"
+	"path/filepath"
 	"runtime"
 )
 
@@ -77,8 +78,8 @@ type Config struct {
 
 func (c Config) String() string {
 	s := fmt.Sprintf("\n<-------------P2p Config------------")
-	s += fmt.Sprintf("\nport:%20d", c.Port)
-	s += fmt.Sprintf("\nloglevl:%20d", c.LogLevel)
+	s += fmt.Sprintf("\nport:		%d", c.Port)
+	s += fmt.Sprintf("\nloglevl:	%d", c.LogLevel)
 	s += fmt.Sprintf(c.PsConf.String())
 	s += fmt.Sprintf(c.DHTConf.String())
 	s += fmt.Sprintf("\n----------------------------------->\n")
@@ -87,7 +88,7 @@ func (c Config) String() string {
 
 var config *Config = nil
 
-func DefaultConfig(isMain bool) *Config {
+func DefaultConfig(isMain bool, base string) *Config {
 	var (
 		level  log.LogLevel
 		boots  []string
@@ -96,11 +97,12 @@ func DefaultConfig(isMain bool) *Config {
 	if isMain {
 		boots = MainP2pBoots
 		level = log.LevelWarn
-		dhtDir = "dht_cache"
+		dhtDir = filepath.Join(base, string(filepath.Separator), "dht_cache")
 	} else {
 		boots = TestP2pBoots
 		level = log.LevelDebug
-		dhtDir = "dht_cache_test"
+		dhtDir = filepath.Join(base, string(filepath.Separator), "dht_cache_test")
+
 	}
 
 	return &Config{

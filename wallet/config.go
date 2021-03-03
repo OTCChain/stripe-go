@@ -1,6 +1,9 @@
 package wallet
 
-import "fmt"
+import (
+	"fmt"
+	"path/filepath"
+)
 
 const KeyStoreScheme = "keystore"
 const TestKeyStoreScheme = "test_keystore"
@@ -20,4 +23,16 @@ var config *Config = nil
 
 func InitConfig(c *Config) {
 	config = c
+}
+
+func DefaultConfig(isMain bool, base string) *Config {
+
+	var dir string
+	if isMain {
+		dir = filepath.Join(base, string(filepath.Separator), KeyStoreScheme)
+	} else {
+		dir = filepath.Join(base, string(filepath.Separator), TestKeyStoreScheme)
+	}
+	c := &Config{Dir: dir}
+	return c
 }

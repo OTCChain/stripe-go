@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/otcChain/chord-go/utils"
 )
 
 type NetworkV1 struct {
@@ -30,6 +31,7 @@ func newNetwork() *NetworkV1 {
 		ctx:        ctx,
 		ctxCancel:  cancel,
 	}
+	utils.LogInst().Info().Msgf("p2p with id[%s] created addrs:%s", h.ID(), h.Addrs())
 	return n
 }
 
@@ -44,7 +46,10 @@ func (nt *NetworkV1) Destroy() error {
 func (nt *NetworkV1) DebugTopicMsg(topic, msg string) string {
 
 	topics := nt.msgManager.topics
-	t, ok := topics[topic]
+	nt.msgManager.lock.RLock()
+	defer nt.msgManager.lock.Unlock()
+
+	t, ok := topics[MessageChannel(topic)]
 	if !ok {
 		return "no such topic"
 	}

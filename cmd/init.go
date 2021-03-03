@@ -71,29 +71,25 @@ func initDefault(baseDir string) error {
 
 	mainConf := &CfgPerNetwork{
 		Name: MainNet,
-		PCfg: p2p.DefaultConfig(true),
+		PCfg: p2p.DefaultConfig(true, baseDir),
 		CCfg: consensus.InitDefaultConfig(),
 		NCfg: node.InitDefaultConfig(),
 		UCfg: &utils.Config{
 			LogLevel: zerolog.ErrorLevel,
 		},
-		WCfg: &wallet.Config{
-			Dir: filepath.Join(baseDir, string(filepath.Separator), wallet.KeyStoreScheme),
-		},
+		WCfg: wallet.DefaultConfig(true, baseDir),
 	}
 	conf[MainNet] = mainConf
 
 	testConf := &CfgPerNetwork{
 		Name: TestNet,
-		PCfg: p2p.DefaultConfig(false),
+		PCfg: p2p.DefaultConfig(false, baseDir),
 		CCfg: consensus.InitDefaultConfig(),
 		NCfg: node.InitDefaultConfig(),
 		UCfg: &utils.Config{
 			LogLevel: zerolog.DebugLevel,
 		},
-		WCfg: &wallet.Config{
-			Dir: filepath.Join(baseDir, string(filepath.Separator), wallet.TestKeyStoreScheme),
-		},
+		WCfg: wallet.DefaultConfig(false, baseDir),
 	}
 	conf[TestNet] = testConf
 
