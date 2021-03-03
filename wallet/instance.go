@@ -17,7 +17,6 @@ func init() {
 }
 
 type Wallet interface {
-	Contains(key Key) bool
 	Active(password, selectAddr string) error
 	KeyInUsed() *Key
 }
@@ -49,7 +48,6 @@ func (c *ChordWalletV1) Active(password, addr string) error {
 	if instConf == nil {
 		return fmt.Errorf("please init wallet instance config first")
 	}
-
 	ks := NewKeyStore(instConf.Dir)
 	validKeyFiles, err := ks.ValidKeyFiles()
 	if err != nil {
@@ -75,16 +73,4 @@ func (c *ChordWalletV1) Active(password, addr string) error {
 
 func (c *ChordWalletV1) KeyInUsed() *Key {
 	return c.activeKey
-}
-
-func (c *ChordWalletV1) Close() error {
-	panic("implement me")
-}
-
-func (c *ChordWalletV1) Keys() []Key {
-	panic("implement me")
-}
-
-func (c *ChordWalletV1) Contains(key Key) bool {
-	panic("implement me")
 }

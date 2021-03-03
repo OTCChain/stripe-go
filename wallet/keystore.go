@@ -106,10 +106,7 @@ func (ks KeyStore) IsKeyFile(filename string) bool {
 	if err != nil {
 		return false
 	}
-	m := make(map[string]interface{})
-	if err := json.Unmarshal(keyJson, &m); err != nil {
-		return false
-	}
+
 	k := new(encryptedKeyJSON)
 	if err := json.Unmarshal(keyJson, k); err != nil {
 		return false
@@ -224,16 +221,16 @@ func EncryptData(data, auth []byte, scryptN, scryptP int) (CryptoJSON, error) {
 }
 
 func DecryptKey(keyJson []byte, auth string) (*Key, error) {
-	m := make(map[string]interface{})
-	if err := json.Unmarshal(keyJson, &m); err != nil {
-		return nil, err
-	}
 	k := new(encryptedKeyJSON)
-
 	if err := json.Unmarshal(keyJson, k); err != nil {
 		return nil, err
 	}
+
 	keyID := uuid.Parse(k.ID)
+	if keyID == nil {
+		return nil, fmt.Errorf("invalid key uuid")
+	}
+
 	keyBytes, err := DecryptData(k.Crypto, auth)
 	if err != nil {
 		return nil, err
