@@ -11,7 +11,6 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/otcChain/chord-go/p2p"
-	"sync"
 )
 
 type BootHost struct {
@@ -20,32 +19,6 @@ type BootHost struct {
 	discovery discovery.Discovery
 	cancel    context.CancelFunc
 	ctx       context.Context
-}
-
-func (bh *BootHost) bootStrap(conf *BootConfig) {
-	var bootPeers addrList
-	for _, id := range conf.Boots {
-		addr, err := ma.NewMultiaddr(id)
-		if err != nil {
-			panic(err)
-		}
-		bootPeers = append(bootPeers, addr)
-	}
-
-	var wg sync.WaitGroup
-	for _, peerAddr := range bootPeers {
-		peerInfo, _ := peer.AddrInfoFromP2pAddr(peerAddr)
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if err := bh.host.Connect(bh.ctx, *peerInfo); err != nil {
-				fmt.Println("Connect to boot strap err:", err, peerInfo)
-			} else {
-				fmt.Println("Connection established with bootstrap node:", *peerInfo)
-			}
-		}()
-	}
-	wg.Wait()
 }
 
 func main() {
@@ -71,7 +44,22 @@ func main() {
 	}
 
 	fmt.Printf("Host create ID[%s] %s\n", p2pHost.ID().Pretty(), p2pHost.Addrs())
-	kademliaDHT, err := dht.New(ctx, p2pHost)
+
+	var bootPeers = make([]peer.AddrInfo, 0)
+	for _, id := range conf.Boots {
+		addr, err := ma.NewMultiaddr(id)
+		if err != nil {
+			panic(err)
+		}
+		peerInfo, err := peer.AddrInfoFromP2pAddr(addr)
+		if err != nil {
+			panic(err)
+		}
+		bootPeers = append(bootPeers, *peerInfo)
+		fmt.Println("add new boot strap:", id)
+	}
+
+	kademliaDHT, err := dht.New(ctx, p2pHost, dht.BootstrapPeers(bootPeers...))
 	if err != nil {
 		panic(err)
 	}
@@ -85,8 +73,6 @@ func main() {
 		cancel: cancel,
 		dht:    kademliaDHT,
 	}
-	//bootHost.bootStrap(conf)
-	//fmt.Println("boot strap start up......")
 
 	if conf.Chat {
 		bootHost.chat()
