@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"os/user"
 	"path/filepath"
 	"time"
 )
@@ -64,7 +65,7 @@ func InitConfig(c *Config) {
 	config = c
 }
 
-func writeTemporaryKeyFile(file string, content []byte) (string, error) {
+func writeTemporaryFile(file string, content []byte) (string, error) {
 	// Create the keystore directory with appropriate permissions
 	// in case it is not present yet.
 	const dirPerm = 0700
@@ -86,8 +87,8 @@ func writeTemporaryKeyFile(file string, content []byte) (string, error) {
 	return f.Name(), nil
 }
 
-func WriteKeyFile(file string, content []byte) error {
-	name, err := writeTemporaryKeyFile(file, content)
+func WriteToFile(file string, content []byte) error {
+	name, err := writeTemporaryFile(file, content)
 	if err != nil {
 		return err
 	}
@@ -104,4 +105,15 @@ func ToISO8601(t time.Time) string {
 	}
 	return fmt.Sprintf("%04d-%02d-%02dT%02d-%02d-%02d.%09d%s",
 		t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), tz)
+}
+
+func BaseUsrDir(dir string) string {
+
+	usr, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
+	baseDir := filepath.Join(usr.HomeDir, string(filepath.Separator), dir)
+	return baseDir
 }

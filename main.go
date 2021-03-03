@@ -8,6 +8,7 @@ import (
 	"github.com/otcChain/chord-go/node"
 	"github.com/otcChain/chord-go/p2p"
 	"github.com/otcChain/chord-go/utils"
+	"github.com/otcChain/chord-go/wallet"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
@@ -23,6 +24,7 @@ type SysParam struct {
 	baseDir  string
 	network  string
 	password string
+	keyAddr  string
 }
 
 const (
@@ -54,10 +56,13 @@ func init() {
 		"chord -n|--network ["+cmd.MainNet+"|"+cmd.TestNet+"] default is "+cmd.TestNet+".")
 
 	rootCmd.Flags().StringVarP(&param.password, "password",
-		"p", "", "chord -p [PASSWORD]")
+		"p", "", "chord -p [PASSWORD OF SELECTED KEY]")
 
-	rootCmd.Flags().StringVarP(&param.baseDir, "base directory",
-		"d", cmd.DefaultBaseDir, "chord -d [base directory]")
+	rootCmd.Flags().StringVarP(&param.keyAddr, "key",
+		"k", "", "chord -k [ADDRESS OF KEY]")
+
+	rootCmd.Flags().StringVarP(&param.baseDir, "dir",
+		"d", cmd.DefaultBaseDir, "chord -d [BASIC DIRECTORY]")
 
 	rootCmd.AddCommand(cmd.InitCmd)
 	rootCmd.AddCommand(cmd.ShowCmd)
@@ -66,7 +71,7 @@ func init() {
 
 func InitConfig() (err error) {
 	conf := make(cmd.StoreCfg)
-	dir := cmd.BaseDir(param.baseDir)
+	dir := utils.BaseUsrDir(param.baseDir)
 	bts, e := os.ReadFile(dir + "/" + cmd.ConfFileName)
 	if e != nil {
 		return e
@@ -84,6 +89,7 @@ func InitConfig() (err error) {
 
 	fmt.Println(result.String())
 
+	wallet.InitConfig(result.WCfg)
 	node.InitConfig(result.NCfg)
 	p2p.InitConfig(result.PCfg)
 	consensus.InitConfig(result.CCfg)
@@ -117,6 +123,10 @@ func mainRun(_ *cobra.Command, _ []string) {
 		pwd = string(pw)
 	}
 
+	if err := wallet.Inst().Active(pwd, param.keyAddr); err != nil {
+		panic(err)
+	}
+
 	if err := node.Inst().Setup(); err != nil {
 		panic(err)
 	}
@@ -130,7 +140,7 @@ func waitSignal(sigCh chan os.Signal) {
 
 	pid := strconv.Itoa(os.Getpid())
 	fmt.Printf("\n>>>>>>>>>>chord node start at pid(%s)<<<<<<<<<<\n", pid)
-	path := filepath.Join(cmd.BaseDir(param.baseDir), string(filepath.Separator), PidFileName)
+	path := filepath.Join(utils.BaseUsrDir(param.baseDir), string(filepath.Separator), PidFileName)
 	if err := ioutil.WriteFile(path, []byte(pid), 0644); err != nil {
 		fmt.Print("failed to write running pid", err)
 	}

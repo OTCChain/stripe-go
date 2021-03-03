@@ -121,7 +121,7 @@ func (conf *BootConfig) String() string {
 
 func (conf *BootConfig) loadKey() crypto.PrivKey {
 	ks := wallet.NewKeyStore("")
-	path := ks.JoinPath(conf.KeyPath)
+	path := conf.KeyPath
 	walletKey, err := ks.GetRawKey(path, conf.Password)
 	if err != nil {
 		panic(err)

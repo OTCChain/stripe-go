@@ -48,7 +48,8 @@ func (bh *BootHost) bootStrap(conf *BootConfig) {
 }
 
 func main() {
-	log.SetAllLoggers(log.LevelDebug)
+
+	log.SetAllLoggers(log.LevelInfo)
 	conf := loadConfig()
 	p2pPriKey := conf.loadKey()
 

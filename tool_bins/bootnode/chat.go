@@ -99,7 +99,6 @@ func (bh *BootHost) chat() {
 	duration, err := disc.Advertise(bh.ctx, RendezvousID)
 	if err != nil {
 		fmt.Println("advertise self err:", err)
-		panic(err)
 	}
 
 	fmt.Println("Announcing ourselves...", duration)

@@ -14,6 +14,8 @@ const (
 
 type Address [AddressLength]byte
 
+var InvalidAddr Address
+
 func (a *Address) SetBytes(b []byte) {
 	if len(b) > len(a) {
 		b = b[len(b)-AddressLength:]
@@ -48,12 +50,12 @@ func IsFedAddress(s string) bool {
 	}
 	return true
 }
-func HexToAddress(s string) (addr Address) {
+func HexToAddress(s string) (addr Address, err error) {
 	hrp, bytes, err := decodeAndConvert(s)
 	if err != nil || (hrp != ChordAddressHRP) || len(bytes) != AddressLength {
-		return
+		return addr, err
 	}
-	return BytesToAddress(bytes)
+	return BytesToAddress(bytes), nil
 }
 
 func (a Address) Hex() string {
@@ -67,6 +69,7 @@ func (a Address) Hex() string {
 func (a Address) String() string {
 	return a.Hex()
 }
+
 func BytesToAddress(b []byte) Address {
 	var a Address
 	a.SetBytes(b)

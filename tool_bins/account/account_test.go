@@ -95,9 +95,12 @@ func TestDecode(t *testing.T) {
 func TestLoadKey(t *testing.T) {
 	var auth = "123"
 	ks := wallet.NewLightKeyStore("", true)
-	path := ks.JoinPath("UTC--2021-03-01T08-34-08.662288000Z--fed1djkthhrcql2f540fypqyp5df99s73dmwaafxkv")
-	addr := common.HexToAddress("fed1djkthhrcql2f540fypqyp5df99s73dmwaafxkv")
-	key, err := ks.GetKey(addr, path, auth)
+	filePath := "UTC--2021-03-01T08-34-08.662288000Z--fed1djkthhrcql2f540fypqyp5df99s73dmwaafxkv"
+	addr, err := common.HexToAddress("fed1djkthhrcql2f540fypqyp5df99s73dmwaafxkv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := ks.GetKey(addr, filePath, auth)
 	if err != nil {
 		t.Fatal(err)
 	}

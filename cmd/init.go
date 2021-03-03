@@ -7,10 +7,10 @@ import (
 	"github.com/otcChain/chord-go/node"
 	"github.com/otcChain/chord-go/p2p"
 	"github.com/otcChain/chord-go/utils"
+	"github.com/otcChain/chord-go/wallet"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	"os"
-	"os/user"
 	"path/filepath"
 )
 
@@ -34,17 +34,6 @@ var InitCmd = &cobra.Command{
 	//Args:  cobra.MinimumNArgs(1),
 }
 
-func BaseDir(dir string) string {
-
-	usr, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-
-	baseDir := filepath.Join(usr.HomeDir, string(filepath.Separator), dir)
-	return baseDir
-}
-
 func init() {
 	flags := InitCmd.Flags()
 	flags.StringVarP(&param.baseDir, "baseDir", "d", DefaultBaseDir,
@@ -53,7 +42,7 @@ func init() {
 }
 
 func initNode(_ *cobra.Command, _ []string) {
-	dir := BaseDir(param.baseDir)
+	dir := utils.BaseUsrDir(param.baseDir)
 	if utils.FileExists(dir) {
 		panic("duplicate init operation! please save the old config or use -baseDir for new node config")
 	}
@@ -75,6 +64,7 @@ type CfgPerNetwork struct {
 	CCfg *consensus.Config `json:"consensus"`
 	NCfg *node.Config      `json:"node"`
 	UCfg *utils.Config     `json:"utils"`
+	WCfg *wallet.Config    `json:"wallet"`
 }
 
 func initDefault(baseDir string) error {
@@ -88,6 +78,9 @@ func initDefault(baseDir string) error {
 		UCfg: &utils.Config{
 			LogLevel: zerolog.ErrorLevel,
 		},
+		WCfg: &wallet.Config{
+			Dir: filepath.Join(baseDir, string(filepath.Separator), wallet.KeyStoreScheme),
+		},
 	}
 	conf[MainNet] = mainConf
 
@@ -98,6 +91,9 @@ func initDefault(baseDir string) error {
 		NCfg: node.InitDefaultConfig(),
 		UCfg: &utils.Config{
 			LogLevel: zerolog.DebugLevel,
+		},
+		WCfg: &wallet.Config{
+			Dir: filepath.Join(baseDir, string(filepath.Separator), wallet.TestKeyStoreScheme),
 		},
 	}
 	conf[TestNet] = testConf
@@ -125,6 +121,7 @@ func (c CfgPerNetwork) String() string {
 	s += c.PCfg.String()
 	s += c.CCfg.String()
 	s += c.UCfg.String()
+	s += c.WCfg.String()
 	s += fmt.Sprintf("\n======================================================================>>>")
 	return s
 }

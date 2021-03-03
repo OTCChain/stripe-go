@@ -16,7 +16,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/scrypt"
 	"io"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -79,9 +79,53 @@ func keyFileFormat(keyAddr common.Address) string {
 	return fmt.Sprintf("UTC--%s--%s", utils.ToISO8601(ts), keyAddr.String())
 }
 
+func (ks KeyStore) ValidKeyFiles() ([]string, error) {
+	ret := make([]string, 0)
+	entries, err := os.ReadDir(ks.keysDirPath)
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		if ok := ks.IsKeyFile(e.Name()); ok {
+			continue
+		}
+		ret = append(ret, e.Name())
+	}
+	if len(ret) == 0 {
+		return nil, fmt.Errorf("no valid key files under [%s]", ks.keysDirPath)
+	}
+	return ret, nil
+}
+
+func (ks KeyStore) IsKeyFile(filename string) bool {
+	filePath := ks.joinPath(filename)
+	keyJson, err := os.ReadFile(filePath)
+	if err != nil {
+		return false
+	}
+	m := make(map[string]interface{})
+	if err := json.Unmarshal(keyJson, &m); err != nil {
+		return false
+	}
+	k := new(encryptedKeyJSON)
+	if err := json.Unmarshal(keyJson, k); err != nil {
+		return false
+	}
+	if keyID := uuid.Parse(k.ID); keyID == nil {
+		return false
+	}
+	if _, err := common.HexToAddress(k.Address); err != nil {
+		return false
+	}
+	return true
+}
+
 func (ks KeyStore) GetRawKey(filename, auth string) (*Key, error) {
-	// Load the key from the keystore and decrypt its contents
-	keyJson, err := ioutil.ReadFile(filename)
+	filePath := ks.joinPath(filename)
+	keyJson, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -89,21 +133,14 @@ func (ks KeyStore) GetRawKey(filename, auth string) (*Key, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Make sure we're really operating on the requested key (no swap attacks)
 	return key, nil
 }
 
 func (ks KeyStore) GetKey(addr common.Address, filename, auth string) (*Key, error) {
-	// Load the key from the keystore and decrypt its contents
-	keyJson, err := ioutil.ReadFile(filename)
+	key, err := ks.GetRawKey(filename, auth)
 	if err != nil {
 		return nil, err
 	}
-	key, err := DecryptKey(keyJson, auth)
-	if err != nil {
-		return nil, err
-	}
-	// Make sure we're really operating on the requested key (no swap attacks)
 	if key.Address != addr {
 		return nil, fmt.Errorf("key content mismatch: have wallet %x, want %x", key.Address, addr)
 	}
@@ -115,11 +152,11 @@ func (ks KeyStore) StoreKey(key *Key, auth string) error {
 	if err != nil {
 		return err
 	}
-	path := ks.JoinPath(keyFileFormat(key.Address))
-	return utils.WriteKeyFile(path, keyJson)
+	path := ks.joinPath(keyFileFormat(key.Address))
+	return utils.WriteToFile(path, keyJson)
 }
 
-func (ks KeyStore) JoinPath(filename string) string {
+func (ks KeyStore) joinPath(filename string) string {
 	if filepath.IsAbs(filename) {
 		return filename
 	}
