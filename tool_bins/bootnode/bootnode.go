@@ -31,6 +31,7 @@ func (bh *BootHost) bootStrap(conf *BootConfig) {
 		}
 		bootPeers = append(bootPeers, addr)
 	}
+
 	var wg sync.WaitGroup
 	for _, peerAddr := range bootPeers {
 		peerInfo, _ := peer.AddrInfoFromP2pAddr(peerAddr)

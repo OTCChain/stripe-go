@@ -3,7 +3,7 @@ package p2p
 import "sync"
 
 type ChordNetwork interface {
-	SetUp() error
+	LaunchUp() error
 	Destroy() error
 }
 

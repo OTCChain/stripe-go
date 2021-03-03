@@ -38,7 +38,6 @@ func init() {
 	flags := InitCmd.Flags()
 	flags.StringVarP(&param.baseDir, "baseDir", "d", DefaultBaseDir,
 		"base directory for chord node")
-	param.servicePort = flags.Int16("service-port", p2p.DefaultP2pPort, "chord --service-port [8888]")
 }
 
 func initNode(_ *cobra.Command, _ []string) {
@@ -86,7 +85,7 @@ func initDefault(baseDir string) error {
 
 	testConf := &CfgPerNetwork{
 		Name: TestNet,
-		PCfg: &p2p.Config{Port: *param.servicePort},
+		PCfg: p2p.InitDefaultConfig(),
 		CCfg: consensus.InitDefaultConfig(),
 		NCfg: node.InitDefaultConfig(),
 		UCfg: &utils.Config{
