@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	badger "github.com/ipfs/go-ds-badger"
 	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/discovery"
@@ -58,8 +59,11 @@ func main() {
 		bootPeers = append(bootPeers, *peerInfo)
 		fmt.Println("add new boot strap:", id)
 	}
-
-	kademliaDHT, err := dht.New(ctx, p2pHost, dht.BootstrapPeers(bootPeers...))
+	ds, err := badger.NewDatastore("boot_dht_table", nil)
+	if err != nil {
+		panic(err)
+	}
+	kademliaDHT, err := dht.New(ctx, p2pHost, dht.Datastore(ds), dht.BootstrapPeers(bootPeers...))
 	if err != nil {
 		panic(err)
 	}
