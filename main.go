@@ -78,7 +78,7 @@ func main() {
 	}
 }
 
-func initWalletKey() error{
+func initWalletKey() error {
 	var pwd = param.password
 	if pwd == "" {
 		fmt.Println("Password=>")
@@ -97,14 +97,14 @@ func initWalletKey() error{
 }
 
 func initSystem() error {
-	if err := os.Setenv("GODEBUG", "netdns=go"); err != nil{
+	if err := os.Setenv("GODEBUG", "netdns=go"); err != nil {
 		return err
 	}
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(int64(time.Now().Nanosecond()))
 	limit, err := fdlimit.Maximum()
 	if err != nil {
-		return fmt.Errorf( "failed to retrieve file descriptor allowance:%s", err)
+		return fmt.Errorf("failed to retrieve file descriptor allowance:%s", err)
 	}
 	_, err = fdlimit.Raise(uint64(limit))
 	if err != nil {
@@ -123,12 +123,15 @@ func mainRun(_ *cobra.Command, _ []string) {
 		panic(err)
 	}
 
-	if err := initWalletKey(); err != nil{
+	if err := initWalletKey(); err != nil {
 		panic(err)
 	}
 
 	go rpcCmd.StartCmdService()
 
+	if err := initSystem(); err != nil {
+		panic(err)
+	}
 	if err := node.Inst().Setup(); err != nil {
 		panic(err)
 	}
