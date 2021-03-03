@@ -7,29 +7,28 @@ import (
 )
 
 type NetworkV1 struct {
-	p2pHost   host.Host
+	p2pHost    host.Host
 	msgManager *PubSub
-	ctxCancel context.CancelFunc
-	ctx context.Context
+	ctxCancel  context.CancelFunc
+	ctx        context.Context
 }
 
 func newNetwork() *NetworkV1 {
 	opts := config.initOptions()
-
 	ctx, cancel := context.WithCancel(context.Background())
 	h, err := libp2p.New(ctx, opts...)
 	if err != nil {
 		panic(err)
 	}
-	ps ,err := newPubSub(ctx, h)
-	if err != nil{
+	ps, err := newPubSub(ctx, h)
+	if err != nil {
 		panic(err)
 	}
 	n := &NetworkV1{
-		p2pHost:   h,
-		msgManager:ps,
-		ctx:ctx,
-		ctxCancel: cancel,
+		p2pHost:    h,
+		msgManager: ps,
+		ctx:        ctx,
+		ctxCancel:  cancel,
 	}
 	return n
 }

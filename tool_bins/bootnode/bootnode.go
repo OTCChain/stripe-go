@@ -85,8 +85,8 @@ func main() {
 		cancel: cancel,
 		dht:    kademliaDHT,
 	}
-	bootHost.bootStrap(conf)
-	fmt.Println("boot strap start up......")
+	//bootHost.bootStrap(conf)
+	//fmt.Println("boot strap start up......")
 
 	if conf.Chat {
 		bootHost.chat()

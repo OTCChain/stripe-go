@@ -11,7 +11,7 @@ func newNode() *ChordNodeV1 {
 }
 
 func (fe *ChordNodeV1) Setup() error {
-	if err := p2p.Inst().SetUp(); err != nil {
+	if err := p2p.Inst().LaunchUp(); err != nil {
 		return err
 	}
 

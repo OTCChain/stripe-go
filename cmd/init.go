@@ -71,7 +71,7 @@ func initDefault(baseDir string) error {
 
 	mainConf := &CfgPerNetwork{
 		Name: MainNet,
-		PCfg: &p2p.Config{Port: *param.servicePort},
+		PCfg: p2p.DefaultConfig(true),
 		CCfg: consensus.InitDefaultConfig(),
 		NCfg: node.InitDefaultConfig(),
 		UCfg: &utils.Config{
@@ -85,7 +85,7 @@ func initDefault(baseDir string) error {
 
 	testConf := &CfgPerNetwork{
 		Name: TestNet,
-		PCfg: p2p.InitDefaultConfig(),
+		PCfg: p2p.DefaultConfig(false),
 		CCfg: consensus.InitDefaultConfig(),
 		NCfg: node.InitDefaultConfig(),
 		UCfg: &utils.Config{

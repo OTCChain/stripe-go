@@ -3,6 +3,7 @@ package p2p
 import (
 	"fmt"
 	badger "github.com/ipfs/go-ds-badger"
+	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -25,29 +26,31 @@ const (
 
 	DHTPrefix = "chord"
 )
+
 var (
-	MainP2pBoots = []string{"/ip4/202.182.101.145/tcp/8888/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe",}
+	MainP2pBoots = []string{"/ip4/202.182.101.145/tcp/8888/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe"}
 	TestP2pBoots = []string{"/ip4/202.182.101.145/tcp/8888/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe",
 		"/ip4/192.168.30.214/tcp/8888/p2p/12D3KooWBVTZ6qpuf2B5NqRrVxxDxUM7oPVWcdHa292SundjQpHH"}
 )
 
 type pubSubConfig struct {
-	MaxMsgSize int  `json:"max_msg_size"`
-	MaxValidateQueue int `json:"validate_queue_size"`
-	MaxOutQueue int  `json:"out_queue_size"`
-	MaxConsTopicThread int `json:"consensus_topic_threads"`
+	MaxMsgSize          int `json:"max_msg_size"`
+	MaxValidateQueue    int `json:"validate_queue_size"`
+	MaxOutQueue         int `json:"out_queue_size"`
+	MaxConsTopicThread  int `json:"consensus_topic_threads"`
 	MaxOtherTopicThread int `json:"other_topic_threads"`
 }
 
 type dhtConfig struct {
-	DataStoreFile string `json:"data_store_file"`
-	Boots    []string `json:"bootstrap"`
+	DataStoreFile string   `json:"data_store_file"`
+	Boots         []string `json:"bootstrap"`
 }
 
 type Config struct {
-	Port int16 `json:"port"`
+	Port          int16        `json:"port"`
+	LogLevel      log.LogLevel `json:"log_level"`
 	*pubSubConfig `json:"pub_sub"`
-	*dhtConfig `json:"dht"`
+	*dhtConfig    `json:"dht"`
 }
 
 func (c Config) String() string {
@@ -58,25 +61,30 @@ func (c Config) String() string {
 }
 
 var config *Config = nil
-func InitDefaultConfig(isMain bool) *Config {
+
+func DefaultConfig(isMain bool) *Config {
 	var boots []string
-	if isMain{
+	var level log.LogLevel
+	if isMain {
 		boots = MainP2pBoots
-	}else{
+		level = log.LevelWarn
+	} else {
 		boots = TestP2pBoots
+		level = log.LevelDebug
 	}
 	return &Config{
-		Port:       DefaultP2pPort,
-		pubSubConfig:&pubSubConfig{
-			MaxMsgSize: DefaultMaxMessageSize,
-			MaxValidateQueue:DefaultValidateQueueSize,
-			MaxOutQueue:DefaultOutboundQueueSize,
-			MaxConsTopicThread:DefaultConsensusTopicThreadSize,
-			MaxOtherTopicThread:DefaultOtherTopicThreadSize,
+		Port:     DefaultP2pPort,
+		LogLevel: level,
+		pubSubConfig: &pubSubConfig{
+			MaxMsgSize:          DefaultMaxMessageSize,
+			MaxValidateQueue:    DefaultValidateQueueSize,
+			MaxOutQueue:         DefaultOutboundQueueSize,
+			MaxConsTopicThread:  DefaultConsensusTopicThreadSize,
+			MaxOtherTopicThread: DefaultOtherTopicThreadSize,
 		},
-		dhtConfig:&dhtConfig{
-			DataStoreFile:"dht_cache",
-			Boots:boots,
+		dhtConfig: &dhtConfig{
+			DataStoreFile: "dht_cache",
+			Boots:         boots,
 		},
 	}
 }
@@ -85,7 +93,7 @@ func InitConfig(c *Config) {
 	config = c
 }
 
-func (c *Config)initOptions() []libp2p.Option{
+func (c *Config) initOptions() []libp2p.Option {
 	listenAddr, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", config.Port))
 	if err != nil {
 		panic(err)
@@ -108,7 +116,7 @@ func (c *Config)initOptions() []libp2p.Option{
 	}
 }
 
-func (c *Config)pubSubOpts(disc discovery.Discovery) []pubsub.Option {
+func (c *Config) pubSubOpts(disc discovery.Discovery) []pubsub.Option {
 	return []pubsub.Option{
 		pubsub.WithValidateQueueSize(c.MaxValidateQueue),
 		pubsub.WithPeerOutboundQueueSize(DefaultOutboundQueueSize),
@@ -119,7 +127,7 @@ func (c *Config)pubSubOpts(disc discovery.Discovery) []pubsub.Option {
 	}
 }
 
-func (c *Config)dhtOpts() ([]dht.Option, error){
+func (c *Config) dhtOpts() ([]dht.Option, error) {
 	ds, err := badger.NewDatastore(c.DataStoreFile, nil)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open Badger data store at %s, err:%s",
@@ -134,13 +142,13 @@ func (c *Config)dhtOpts() ([]dht.Option, error){
 			continue
 		}
 		peerInfo, err := peer.AddrInfoFromP2pAddr(addr)
-		if err != nil{
+		if err != nil {
 			utils.LogInst().Warn().Str("parse failed for boot id", id)
 			continue
 		}
 		peers = append(peers, *peerInfo)
 	}
-	if len(peers) == 0{
+	if len(peers) == 0 {
 		return nil, fmt.Errorf("no invalid bootstrap node")
 	}
 
