@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/otcChain/chord-go/cmd"
+	"github.com/otcChain/chord-go/common/fdlimit"
 	"github.com/otcChain/chord-go/node"
 	rpcCmd "github.com/otcChain/chord-go/rpc/cmd"
 	"github.com/otcChain/chord-go/utils"
@@ -10,11 +11,14 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"syscall"
+	"time"
 )
 
 type SysParam struct {
@@ -74,6 +78,41 @@ func main() {
 	}
 }
 
+func initWalletKey() error{
+	var pwd = param.password
+	if pwd == "" {
+		fmt.Println("Password=>")
+		pw, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+		if err != nil {
+			return err
+		}
+		pwd = string(pw)
+	}
+
+	if err := wallet.Inst().Active(pwd, param.keyAddr); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func initSystem() error {
+	if err := os.Setenv("GODEBUG", "netdns=go"); err != nil{
+		return err
+	}
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	rand.Seed(int64(time.Now().Nanosecond()))
+	limit, err := fdlimit.Maximum()
+	if err != nil {
+		return fmt.Errorf( "failed to retrieve file descriptor allowance:%s", err)
+	}
+	_, err = fdlimit.Raise(uint64(limit))
+	if err != nil {
+		return fmt.Errorf("failed to raise file descriptor allowance:%s", err)
+	}
+	return nil
+}
+
 func mainRun(_ *cobra.Command, _ []string) {
 	if param.version {
 		fmt.Println(Version)
@@ -84,31 +123,23 @@ func mainRun(_ *cobra.Command, _ []string) {
 		panic(err)
 	}
 
-	var pwd = param.password
-	if pwd == "" {
-		fmt.Println("Password=>")
-		pw, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-		if err != nil {
-			panic(err)
-		}
-		pwd = string(pw)
-	}
-
-	if err := wallet.Inst().Active(pwd, param.keyAddr); err != nil {
+	if err := initWalletKey(); err != nil{
 		panic(err)
 	}
 
 	go rpcCmd.StartCmdService()
+
 	if err := node.Inst().Setup(); err != nil {
 		panic(err)
 	}
 
 	node.Inst().Start()
-	sigCh := make(chan os.Signal, 1)
-	waitSignal(sigCh)
+
+	waitSignal()
 }
 
-func waitSignal(sigCh chan os.Signal) {
+func waitSignal() {
+	sigCh := make(chan os.Signal, 1)
 
 	pid := strconv.Itoa(os.Getpid())
 	fmt.Printf("\n>>>>>>>>>>chord node start at pid(%s)<<<<<<<<<<\n", pid)
