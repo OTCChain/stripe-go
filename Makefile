@@ -36,9 +36,6 @@ pbs:
 
 target:=mac
 
-boot:
-	cd p2p/bootnode/ && $(MAKE) $(target)
-
 acc_tool:
 	cd tool_bins/account/ && $(MAKE) $(target)
 
