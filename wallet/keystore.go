@@ -79,8 +79,8 @@ func keyFileFormat(keyAddr common.Address) string {
 	return fmt.Sprintf("UTC--%s--%s", utils.ToISO8601(ts), keyAddr.String())
 }
 
-func (ks KeyStore) ValidKeyFiles() ([]string, error) {
-	ret := make([]string, 0)
+func (ks KeyStore) ValidKeyFiles() (map[string]string, error) {
+	ret := make(map[string]string)
 	entries, err := os.ReadDir(ks.keysDirPath)
 	if err != nil {
 		return nil, err
@@ -89,10 +89,11 @@ func (ks KeyStore) ValidKeyFiles() ([]string, error) {
 		if e.IsDir() {
 			continue
 		}
-		if ok := ks.IsKeyFile(e.Name()); ok {
+		addr, ok := ks.IsKeyFile(e.Name())
+		if !ok {
 			continue
 		}
-		ret = append(ret, e.Name())
+		ret[addr] = e.Name()
 	}
 	if len(ret) == 0 {
 		return nil, fmt.Errorf("no valid key files under [%s]", ks.keysDirPath)
@@ -100,24 +101,24 @@ func (ks KeyStore) ValidKeyFiles() ([]string, error) {
 	return ret, nil
 }
 
-func (ks KeyStore) IsKeyFile(filename string) bool {
+func (ks KeyStore) IsKeyFile(filename string) (string, bool) {
 	filePath := ks.joinPath(filename)
 	keyJson, err := os.ReadFile(filePath)
 	if err != nil {
-		return false
+		return "", false
 	}
 
 	k := new(encryptedKeyJSON)
 	if err := json.Unmarshal(keyJson, k); err != nil {
-		return false
+		return "", false
 	}
 	if keyID := uuid.Parse(k.ID); keyID == nil {
-		return false
+		return "", false
 	}
 	if _, err := common.HexToAddress(k.Address); err != nil {
-		return false
+		return "", false
 	}
-	return true
+	return k.Address, true
 }
 
 func (ks KeyStore) GetRawKey(filename, auth string) (*Key, error) {
@@ -150,6 +151,7 @@ func (ks KeyStore) StoreKey(key *Key, auth string) error {
 		return err
 	}
 	path := ks.joinPath(keyFileFormat(key.Address))
+	fmt.Println(path)
 	return utils.WriteToFile(path, keyJson)
 }
 

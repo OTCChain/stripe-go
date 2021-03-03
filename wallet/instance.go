@@ -19,6 +19,7 @@ func init() {
 type Wallet interface {
 	Active(password, selectAddr string) error
 	KeyInUsed() *Key
+	CreateNewKey(auth string) error
 }
 
 var _instance Wallet
@@ -45,17 +46,26 @@ type ChordWalletV1 struct {
 }
 
 func (c *ChordWalletV1) Active(password, addr string) error {
-	if instConf == nil {
+	if config == nil {
 		return fmt.Errorf("please init wallet instance config first")
 	}
-	ks := NewKeyStore(instConf.Dir)
+	ks := NewKeyStore(config.Dir)
 	validKeyFiles, err := ks.ValidKeyFiles()
 	if err != nil {
 		return err
 	}
 	var selFile string
 	if addr == "" && len(validKeyFiles) == 1 {
-		addr = validKeyFiles[0]
+		for a, path := range validKeyFiles {
+			selFile = path
+			addr = a
+		}
+	} else {
+		path, ok := validKeyFiles[addr]
+		if !ok {
+			return fmt.Errorf("no valid key file for addr:[%s]", addr)
+		}
+		selFile = path
 	}
 
 	address, _ := common.HexToAddress(addr)
@@ -73,4 +83,13 @@ func (c *ChordWalletV1) Active(password, addr string) error {
 
 func (c *ChordWalletV1) KeyInUsed() *Key {
 	return c.activeKey
+}
+
+func (c *ChordWalletV1) CreateNewKey(auth string) error {
+	ks := NewKeyStore(config.Dir)
+	key := NewKey()
+	if err := ks.StoreKey(key, auth); err != nil {
+		return err
+	}
+	return nil
 }

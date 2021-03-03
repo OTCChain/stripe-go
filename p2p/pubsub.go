@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"context"
+	coreDisc "github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-discovery"
 	"github.com/libp2p/go-libp2p-kad-dht"
@@ -10,12 +11,12 @@ import (
 )
 
 type PubSub struct {
-	ctx  context.Context
-	lock sync.Mutex
-
+	ctx    context.Context
+	lock   sync.Mutex
+	topics map[string]*pubsub.Topic
 	dht    *dht.IpfsDHT
 	pubSub *pubsub.PubSub
-	disc   discovery.Discovery
+	disc   coreDisc.Discovery
 }
 
 func (s *PubSub) start() error {
@@ -39,5 +40,6 @@ func newPubSub(ctx context.Context, h host.Host) (*PubSub, error) {
 		dht:    kademliaDHT,
 		pubSub: ps,
 		disc:   disc,
+		topics: make(map[string]*pubsub.Topic),
 	}, nil
 }

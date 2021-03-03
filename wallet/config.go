@@ -10,14 +10,14 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n<-------------P2p Config------------")
+	s := fmt.Sprintf("\n<-------------wallet Config------------")
 	s += fmt.Sprintf("\nkey store dir:%20s", c.Dir)
 	s += fmt.Sprintf("\n----------------------------------->\n")
 	return s
 }
 
-var instConf *Config = nil
+var config *Config = nil
 
 func InitConfig(c *Config) {
-	instConf = c
+	config = c
 }

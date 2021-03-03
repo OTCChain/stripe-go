@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/otcChain/chord-go/cmd"
-	"github.com/otcChain/chord-go/consensus"
 	"github.com/otcChain/chord-go/node"
-	"github.com/otcChain/chord-go/p2p"
+	rpcCmd "github.com/otcChain/chord-go/rpc/cmd"
 	"github.com/otcChain/chord-go/utils"
 	"github.com/otcChain/chord-go/wallet"
 	"github.com/spf13/cobra"
@@ -66,35 +64,8 @@ func init() {
 
 	rootCmd.AddCommand(cmd.InitCmd)
 	rootCmd.AddCommand(cmd.ShowCmd)
-	rootCmd.AddCommand(cmd.AccCmd)
-}
-
-func InitConfig() (err error) {
-	conf := make(cmd.StoreCfg)
-	dir := utils.BaseUsrDir(param.baseDir)
-	bts, e := os.ReadFile(dir + "/" + cmd.ConfFileName)
-	if e != nil {
-		return e
-	}
-
-	if err = json.Unmarshal(bts, &conf); err != nil {
-		return
-	}
-
-	result, ok := conf[param.network]
-	if !ok {
-		err = fmt.Errorf("failed to find node config")
-		return
-	}
-
-	fmt.Println(result.String())
-
-	wallet.InitConfig(result.WCfg)
-	node.InitConfig(result.NCfg)
-	p2p.InitConfig(result.PCfg)
-	consensus.InitConfig(result.CCfg)
-	utils.InitConfig(result.UCfg)
-	return
+	rootCmd.AddCommand(cmd.WalletCmd)
+	rootCmd.AddCommand(cmd.DebugCmd)
 }
 
 func main() {
@@ -109,7 +80,7 @@ func mainRun(_ *cobra.Command, _ []string) {
 		return
 	}
 
-	if err := InitConfig(); err != nil {
+	if err := cmd.InitConfig(param.baseDir, param.network); err != nil {
 		panic(err)
 	}
 
@@ -127,6 +98,7 @@ func mainRun(_ *cobra.Command, _ []string) {
 		panic(err)
 	}
 
+	go rpcCmd.StartCmdService()
 	if err := node.Inst().Setup(); err != nil {
 		panic(err)
 	}
@@ -146,7 +118,6 @@ func waitSignal(sigCh chan os.Signal) {
 	}
 
 	signal.Notify(sigCh,
-		//syscall.SIGHUP,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)

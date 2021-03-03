@@ -124,3 +124,32 @@ func (c CfgPerNetwork) String() string {
 	s += fmt.Sprintf("\n======================================================================>>>")
 	return s
 }
+
+func InitConfig(baseDir, network string) (err error) {
+	conf := make(StoreCfg)
+	dir := utils.BaseUsrDir(baseDir)
+	confPath := filepath.Join(dir, string(filepath.Separator), ConfFileName)
+	bts, e := os.ReadFile(confPath)
+	if e != nil {
+		return e
+	}
+
+	if err = json.Unmarshal(bts, &conf); err != nil {
+		return
+	}
+
+	result, ok := conf[network]
+	if !ok {
+		err = fmt.Errorf("failed to find node config")
+		return
+	}
+
+	fmt.Println(result.String())
+
+	wallet.InitConfig(result.WCfg)
+	node.InitConfig(result.NCfg)
+	p2p.InitConfig(result.PCfg)
+	consensus.InitConfig(result.CCfg)
+	utils.InitConfig(result.UCfg)
+	return
+}

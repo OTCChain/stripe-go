@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package pbs;
+option go_package = ".;pbs";
+
+service CmdService {
+    rpc P2pSendTopicMsg (TopicMsg) returns (CommonResponse) {}
+}
+
+message TopicMsg {
+    string  topic = 1;
+    string msg = 2;
+}
+
+message CommonResponse {
+    string msg = 1;
+}

@@ -41,21 +41,46 @@ type pubSubConfig struct {
 	MaxOtherTopicThread int `json:"other_topic_threads"`
 }
 
+func (c *pubSubConfig) String() string {
+	s := fmt.Sprintf("\n<*******pub sub*********")
+	s += fmt.Sprintf("\n*max message:			%d", c.MaxMsgSize)
+	s += fmt.Sprintf("\n*max validate queue size:	%d", c.MaxValidateQueue)
+	s += fmt.Sprintf("\n*max out queue size:		%d", c.MaxOutQueue)
+	s += fmt.Sprintf("\n*max consensus topic thread:	%d", c.MaxConsTopicThread)
+	s += fmt.Sprintf("\n*max common topic thread:	%d", c.MaxOtherTopicThread)
+	s += fmt.Sprintf("\n*************************\n")
+	return s
+}
+
 type dhtConfig struct {
-	DataStoreFile string   `json:"data_store_file"`
+	DataStoreFile string   `json:"cache_dir"`
 	Boots         []string `json:"bootstrap"`
 }
 
+func (c *dhtConfig) String() string {
+	s := fmt.Sprintf("\n<**********dht***********")
+	s += fmt.Sprintf("\n*dht cache dir:%s", c.DataStoreFile)
+	s += fmt.Sprintf("\n*boot strap nodes:%d", len(c.Boots))
+	for _, boot := range c.Boots {
+		s += fmt.Sprintf("\n%s", boot)
+	}
+	s += fmt.Sprintf("\n*************************\n")
+	return s
+}
+
 type Config struct {
-	Port          int16        `json:"port"`
-	LogLevel      log.LogLevel `json:"log_level"`
-	*pubSubConfig `json:"pub_sub"`
-	*dhtConfig    `json:"dht"`
+	Port     int16         `json:"port"`
+	LogLevel log.LogLevel  `json:"log_level"`
+	PsConf   *pubSubConfig `json:"pub_sub"`
+	DHTConf  *dhtConfig    `json:"dht"`
 }
 
 func (c Config) String() string {
 	s := fmt.Sprintf("\n<-------------P2p Config------------")
 	s += fmt.Sprintf("\nport:%20d", c.Port)
+	s += fmt.Sprintf("\nloglevl:%20d", c.LogLevel)
+	s += fmt.Sprintf(c.PsConf.String())
+	s += fmt.Sprintf(c.DHTConf.String())
 	s += fmt.Sprintf("\n----------------------------------->\n")
 	return s
 }
@@ -63,27 +88,33 @@ func (c Config) String() string {
 var config *Config = nil
 
 func DefaultConfig(isMain bool) *Config {
-	var boots []string
-	var level log.LogLevel
+	var (
+		level  log.LogLevel
+		boots  []string
+		dhtDir string
+	)
 	if isMain {
 		boots = MainP2pBoots
 		level = log.LevelWarn
+		dhtDir = "dht_cache"
 	} else {
 		boots = TestP2pBoots
 		level = log.LevelDebug
+		dhtDir = "dht_cache_test"
 	}
+
 	return &Config{
 		Port:     DefaultP2pPort,
 		LogLevel: level,
-		pubSubConfig: &pubSubConfig{
+		PsConf: &pubSubConfig{
 			MaxMsgSize:          DefaultMaxMessageSize,
 			MaxValidateQueue:    DefaultValidateQueueSize,
 			MaxOutQueue:         DefaultOutboundQueueSize,
 			MaxConsTopicThread:  DefaultConsensusTopicThreadSize,
 			MaxOtherTopicThread: DefaultOtherTopicThreadSize,
 		},
-		dhtConfig: &dhtConfig{
-			DataStoreFile: "dht_cache",
+		DHTConf: &dhtConfig{
+			DataStoreFile: dhtDir,
 			Boots:         boots,
 		},
 	}
@@ -118,24 +149,24 @@ func (c *Config) initOptions() []libp2p.Option {
 
 func (c *Config) pubSubOpts(disc discovery.Discovery) []pubsub.Option {
 	return []pubsub.Option{
-		pubsub.WithValidateQueueSize(c.MaxValidateQueue),
-		pubsub.WithPeerOutboundQueueSize(DefaultOutboundQueueSize),
+		pubsub.WithValidateQueueSize(c.PsConf.MaxValidateQueue),
+		pubsub.WithPeerOutboundQueueSize(c.PsConf.MaxOutQueue),
 		pubsub.WithValidateWorkers(runtime.NumCPU() * 2),
-		pubsub.WithValidateThrottle(c.MaxConsTopicThread + c.MaxOtherTopicThread),
-		pubsub.WithMaxMessageSize(c.MaxMsgSize),
+		pubsub.WithValidateThrottle(c.PsConf.MaxConsTopicThread + c.PsConf.MaxOtherTopicThread),
+		pubsub.WithMaxMessageSize(c.PsConf.MaxMsgSize),
 		pubsub.WithDiscovery(disc),
 	}
 }
 
 func (c *Config) dhtOpts() ([]dht.Option, error) {
-	ds, err := badger.NewDatastore(c.DataStoreFile, nil)
+	ds, err := badger.NewDatastore(c.DHTConf.DataStoreFile, nil)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open Badger data store at %s, err:%s",
-			c.DataStoreFile, err)
+			c.DHTConf.DataStoreFile, err)
 	}
 	peers := make([]peer.AddrInfo, 0)
 
-	for _, id := range c.Boots {
+	for _, id := range c.DHTConf.Boots {
 		addr, err := ma.NewMultiaddr(id)
 		if err != nil {
 			utils.LogInst().Warn().Str("invalid boot id", id)
