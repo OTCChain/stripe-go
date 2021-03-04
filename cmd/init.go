@@ -121,7 +121,7 @@ func (c CfgPerNetwork) String() string {
 	return s
 }
 
-func InitConfig(baseDir, network string) (err error) {
+func InitChordConfig(baseDir, network string) (err error) {
 	conf := make(StoreCfg)
 	dir := utils.BaseUsrDir(baseDir)
 	confPath := filepath.Join(dir, string(filepath.Separator), ConfFileName)

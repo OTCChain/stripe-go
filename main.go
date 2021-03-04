@@ -118,8 +118,11 @@ func mainRun(_ *cobra.Command, _ []string) {
 		fmt.Println(Version)
 		return
 	}
+	if err := initSystem(); err != nil {
+		panic(err)
+	}
 
-	if err := cmd.InitConfig(param.baseDir, param.network); err != nil {
+	if err := cmd.InitChordConfig(param.baseDir, param.network); err != nil {
 		panic(err)
 	}
 
@@ -129,19 +132,16 @@ func mainRun(_ *cobra.Command, _ []string) {
 
 	go rpcCmd.StartCmdService()
 
-	if err := initSystem(); err != nil {
-		panic(err)
-	}
 	if err := node.Inst().Setup(); err != nil {
 		panic(err)
 	}
 
 	node.Inst().Start()
 
-	waitSignal()
+	waitShutdownSignal()
 }
 
-func waitSignal() {
+func waitShutdownSignal() {
 	sigCh := make(chan os.Signal, 1)
 
 	pid := strconv.Itoa(os.Getpid())
