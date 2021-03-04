@@ -2,8 +2,10 @@ package p2p
 
 import (
 	"context"
+	"fmt"
 	coreDisc "github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-discovery"
 	"github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-pubsub"
@@ -95,4 +97,31 @@ func (s *PubSub) readingMessage(id MessageChannel, sub *pubsub.Subscription) {
 		}
 		utils.LogInst().Debug().Msg(msg.String())
 	}
+}
+
+func (s *PubSub) SendMsg(topic string, msgData []byte) error {
+	topics := s.topics
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	t, ok := topics[MessageChannel(topic)]
+	if !ok {
+		return fmt.Errorf("no such topic")
+	}
+
+	if err := t.Publish(s.ctx, msgData); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *PubSub) PeersOfTopic(topic string) []peer.ID {
+	topics := s.topics
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	t, ok := topics[MessageChannel(topic)]
+	if !ok {
+		return nil
+	}
+	return t.ListPeers()
 }

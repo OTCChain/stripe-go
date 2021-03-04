@@ -31,7 +31,7 @@ const (
 var (
 	MainP2pBoots = []string{"/ip4/202.182.101.145/tcp/8888/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe"}
 	TestP2pBoots = []string{"/ip4/202.182.101.145/tcp/8888/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe",
-		"/ip4/192.168.30.214/tcp/8888/p2p/12D3KooWBVTZ6qpuf2B5NqRrVxxDxUM7oPVWcdHa292SundjQpHH"}
+		"/ip4/192.168.30.214/tcp/8888/p2p/12D3KooWLYfvJ1aeQMdJsLPEHn4U5jvX4jAY4LfAan3YRcXTndZy"}
 )
 
 type pubSubConfig struct {
