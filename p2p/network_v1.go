@@ -42,20 +42,3 @@ func (nt *NetworkV1) LaunchUp() error {
 func (nt *NetworkV1) Destroy() error {
 	return nil
 }
-
-func (nt *NetworkV1) DebugTopicMsg(topic, msg string) string {
-
-	topics := nt.msgManager.topics
-	nt.msgManager.lock.RLock()
-	defer nt.msgManager.lock.Unlock()
-
-	t, ok := topics[MessageChannel(topic)]
-	if !ok {
-		return "no such topic"
-	}
-
-	if err := t.Publish(nt.ctx, []byte(msg)); err != nil {
-		return err.Error()
-	}
-	return "publish success!"
-}

@@ -16,8 +16,8 @@ type PubSub struct {
 	lock   sync.RWMutex
 	topics map[MessageChannel]*pubsub.Topic
 	dht    *dht.IpfsDHT
-	pubSub *pubsub.PubSub
 	disc   coreDisc.Discovery
+	pubSub *pubsub.PubSub
 }
 
 func newPubSub(ctx context.Context, h host.Host) (*PubSub, error) {
@@ -66,16 +66,26 @@ func (s *PubSub) start() error {
 	return nil
 }
 
+func (s *PubSub) removeTopic(id MessageChannel) {
+
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	t, ok := s.topics[id]
+	if !ok {
+		return
+	}
+	if err := t.Close(); err != nil {
+		utils.LogInst().Warn().Msgf("topic [%s] close failed", id)
+	}
+	delete(s.topics, id)
+	utils.LogInst().Warn().Msgf("remove topic [%s] from system", id)
+}
+
 func (s *PubSub) readingMessage(id MessageChannel, sub *pubsub.Subscription) {
 
 	utils.LogInst().Info().Msgf("[pubSub] start reading [%s] message:", id)
-
-	defer func() {
-		s.lock.Lock()
-		delete(s.topics, id)
-		s.lock.Unlock()
-		utils.LogInst().Warn().Msgf("remove topic [%s] from system", id)
-	}()
+	defer s.removeTopic(id)
 
 	for {
 		msg, err := sub.Next(s.ctx)
@@ -85,5 +95,4 @@ func (s *PubSub) readingMessage(id MessageChannel, sub *pubsub.Subscription) {
 		}
 		utils.LogInst().Debug().Msg(msg.String())
 	}
-
 }

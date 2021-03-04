@@ -4,6 +4,7 @@ Over-the-Counter for crypto currency based on blockchain technology
 ###requirements
 ```bash
 yum install libstdc++-static
+make pbs
 ```
 
 ###make chord node

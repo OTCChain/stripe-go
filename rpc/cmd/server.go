@@ -12,6 +12,17 @@ import (
 
 type cmdService struct{}
 
+func (c cmdService) P2PShowPeers(ctx context.Context, peer *pbs.ShowPeer) (*pbs.CommonResponse, error) {
+	network, ok := p2p.Inst().(*p2p.NetworkV1)
+	if !ok {
+		return nil, fmt.Errorf("this test case is not valaible")
+	}
+	result := network.DebugTopicPeers(peer.Topic)
+	return &pbs.CommonResponse{
+		Msg: result,
+	}, nil
+}
+
 func (c cmdService) P2PSendTopicMsg(ctx context.Context, msg *pbs.TopicMsg) (*pbs.CommonResponse, error) {
 
 	network, ok := p2p.Inst().(*p2p.NetworkV1)
@@ -25,7 +36,7 @@ func (c cmdService) P2PSendTopicMsg(ctx context.Context, msg *pbs.TopicMsg) (*pb
 	}, nil
 }
 
-const ServicePort = 8488
+const ServicePort = 8848
 
 func StartCmdService() {
 	var address = fmt.Sprintf("127.0.0.1:%d", ServicePort)
