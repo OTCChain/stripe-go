@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/otcChain/chord-go/consensus"
 	"github.com/otcChain/chord-go/node"
 	"github.com/otcChain/chord-go/p2p"
+	"github.com/otcChain/chord-go/rpc"
 	"github.com/otcChain/chord-go/utils"
 	"github.com/otcChain/chord-go/wallet"
 	"github.com/rs/zerolog"
@@ -37,7 +37,7 @@ var InitCmd = &cobra.Command{
 func init() {
 	flags := InitCmd.Flags()
 	flags.StringVarP(&param.baseDir, "baseDir", "d", DefaultBaseDir,
-		"base directory for chord node")
+		"init -d [Directory]")
 }
 
 func initNode(_ *cobra.Command, _ []string) {
@@ -55,17 +55,6 @@ func initNode(_ *cobra.Command, _ []string) {
 	}
 }
 
-type StoreCfg map[string]*CfgPerNetwork
-
-type CfgPerNetwork struct {
-	Name string            `json:"name"`
-	PCfg *p2p.Config       `json:"p2p"`
-	CCfg *consensus.Config `json:"consensus"`
-	NCfg *node.Config      `json:"node"`
-	UCfg *utils.Config     `json:"utils"`
-	WCfg *wallet.Config    `json:"wallet"`
-}
-
 func initDefault(baseDir string) error {
 	conf := make(StoreCfg)
 
@@ -78,6 +67,7 @@ func initDefault(baseDir string) error {
 			LogLevel: zerolog.ErrorLevel,
 		},
 		WCfg: wallet.DefaultConfig(true, baseDir),
+		RCfg: rpc.DefaultConfig(),
 	}
 	conf[MainNet] = mainConf
 
@@ -90,6 +80,7 @@ func initDefault(baseDir string) error {
 			LogLevel: zerolog.DebugLevel,
 		},
 		WCfg: wallet.DefaultConfig(false, baseDir),
+		RCfg: rpc.DefaultConfig(),
 	}
 	conf[TestNet] = testConf
 
@@ -102,50 +93,4 @@ func initDefault(baseDir string) error {
 		panic(err)
 	}
 	return nil
-}
-
-func (sc StoreCfg) DebugPrint() {
-	for _, c := range sc {
-		fmt.Println(c)
-	}
-}
-
-func (c CfgPerNetwork) String() string {
-	s := fmt.Sprintf("\n<<<===================System[%s] Config===========================", c.Name)
-	s += c.NCfg.String()
-	s += c.PCfg.String()
-	s += c.CCfg.String()
-	s += c.UCfg.String()
-	s += c.WCfg.String()
-	s += fmt.Sprintf("\n======================================================================>>>")
-	return s
-}
-
-func InitChordConfig(baseDir, network string) (err error) {
-	conf := make(StoreCfg)
-	dir := utils.BaseUsrDir(baseDir)
-	confPath := filepath.Join(dir, string(filepath.Separator), ConfFileName)
-	bts, e := os.ReadFile(confPath)
-	if e != nil {
-		return e
-	}
-
-	if err = json.Unmarshal(bts, &conf); err != nil {
-		return
-	}
-
-	result, ok := conf[network]
-	if !ok {
-		err = fmt.Errorf("failed to find node config")
-		return
-	}
-
-	fmt.Println(result.String())
-
-	wallet.InitConfig(result.WCfg)
-	node.InitConfig(result.NCfg)
-	p2p.InitConfig(result.PCfg)
-	consensus.InitConfig(result.CCfg)
-	utils.InitConfig(result.UCfg)
-	return
 }

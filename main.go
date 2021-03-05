@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/otcChain/chord-go/cmd"
+	"github.com/otcChain/chord-go/consensus"
 	"github.com/otcChain/chord-go/node"
-	rpcCmd "github.com/otcChain/chord-go/rpc/cmd"
+	"github.com/otcChain/chord-go/p2p"
+	"github.com/otcChain/chord-go/rpc"
 	"github.com/otcChain/chord-go/utils"
 	"github.com/otcChain/chord-go/utils/fdlimit"
 	"github.com/otcChain/chord-go/wallet"
@@ -27,6 +30,9 @@ type SysParam struct {
 	network  string
 	password string
 	keyAddr  string
+	cmdPort  int16
+	httpPort int16
+	wsPort   int16
 }
 
 const (
@@ -50,21 +56,30 @@ var rootCmd = &cobra.Command{
 
 func init() {
 
-	rootCmd.Flags().BoolVarP(&param.version, "version",
+	flags := rootCmd.Flags()
+
+	flags.BoolVarP(&param.version, "version",
 		"v", false, "chord -v")
 
-	rootCmd.Flags().StringVarP(&param.network, "network",
+	flags.StringVarP(&param.network, "network",
 		"n", cmd.TestNet,
 		"chord -n|--network ["+cmd.MainNet+"|"+cmd.TestNet+"] default is "+cmd.TestNet+".")
 
-	rootCmd.Flags().StringVarP(&param.password, "password",
+	flags.StringVarP(&param.password, "password",
 		"p", "", "chord -p [PASSWORD OF SELECTED KEY]")
 
-	rootCmd.Flags().StringVarP(&param.keyAddr, "key",
+	flags.StringVarP(&param.keyAddr, "key",
 		"k", "", "chord -k [ADDRESS OF KEY]")
 
-	rootCmd.Flags().StringVarP(&param.baseDir, "dir",
+	flags.StringVarP(&param.baseDir, "dir",
 		"d", cmd.DefaultBaseDir, "chord -d [BASIC DIRECTORY]")
+
+	flags.Int16Var(&param.cmdPort, "cmd.port", -1,
+		"chord --cmd.port=[Port]")
+	flags.Int16Var(&param.httpPort, "http.port", -1,
+		"chord --http.port=[Port]")
+	flags.Int16Var(&param.wsPort, "ws.port", -1,
+		"chord --ws.port=[Port]")
 
 	rootCmd.AddCommand(cmd.InitCmd)
 	rootCmd.AddCommand(cmd.ShowCmd)
@@ -76,6 +91,44 @@ func main() {
 	if err := rootCmd.Execute(); err != nil {
 		panic(err)
 	}
+}
+
+func initChordConfig() (err error) {
+
+	conf := make(cmd.StoreCfg)
+	dir := utils.BaseUsrDir(param.baseDir)
+	confPath := filepath.Join(dir, string(filepath.Separator), cmd.ConfFileName)
+	bts, e := os.ReadFile(confPath)
+	if e != nil {
+		return e
+	}
+
+	if err = json.Unmarshal(bts, &conf); err != nil {
+		return
+	}
+
+	result, ok := conf[param.network]
+	if !ok {
+		err = fmt.Errorf("failed to find node config")
+		return
+	}
+
+	fmt.Println(result.String())
+
+	wallet.InitConfig(result.WCfg)
+	node.InitConfig(result.NCfg)
+	p2p.InitConfig(result.PCfg)
+	consensus.InitConfig(result.CCfg)
+	utils.InitConfig(result.UCfg)
+
+	if param.cmdPort != -1 {
+		result.RCfg.CmdPort = param.cmdPort
+
+	}
+
+	rpc.InitConfig(result.RCfg)
+
+	return
 }
 
 func initWalletKey() error {
@@ -97,9 +150,11 @@ func initWalletKey() error {
 }
 
 func initSystem() error {
+
 	if err := os.Setenv("GODEBUG", "netdns=go"); err != nil {
 		return err
 	}
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(int64(time.Now().Nanosecond()))
 	limit, err := fdlimit.Maximum()
@@ -114,15 +169,17 @@ func initSystem() error {
 }
 
 func mainRun(_ *cobra.Command, _ []string) {
+
 	if param.version {
 		fmt.Println(Version)
 		return
 	}
+
 	if err := initSystem(); err != nil {
 		panic(err)
 	}
 
-	if err := cmd.InitChordConfig(param.baseDir, param.network); err != nil {
+	if err := initChordConfig(); err != nil {
 		panic(err)
 	}
 
@@ -130,7 +187,9 @@ func mainRun(_ *cobra.Command, _ []string) {
 		panic(err)
 	}
 
-	go rpcCmd.StartCmdService()
+	if err := rpc.Inst().StartService(); err != nil {
+		panic(err)
+	}
 
 	if err := node.Inst().Setup(); err != nil {
 		panic(err)

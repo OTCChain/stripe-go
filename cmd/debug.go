@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/otcChain/chord-go/p2p"
 	"github.com/otcChain/chord-go/pbs"
-	"github.com/otcChain/chord-go/rpc/cmd"
+	"github.com/otcChain/chord-go/rpc"
 	"github.com/spf13/cobra"
 )
 
@@ -30,6 +30,13 @@ var showPeerCmd = &cobra.Command{
 	Run:   showPeerAction,
 }
 
+var rpcCmd = &cobra.Command{
+	Use:   "rpc",
+	Short: "rpc",
+	Long:  `TODO::.`,
+	Run:   rpcUsage,
+}
+
 var (
 	topic   string
 	msgBody string
@@ -45,6 +52,8 @@ func init() {
 	showPeerCmd.Flags().StringVarP(&topic, "topic", "t", string(p2p.MSDebug),
 		"chord debug peers -t [TOPIC]")
 	DebugCmd.AddCommand(showPeerCmd)
+
+	DebugCmd.AddCommand(rpcCmd)
 }
 
 func debug(c *cobra.Command, _ []string) {
@@ -57,7 +66,7 @@ func p2pAction(c *cobra.Command, _ []string) {
 		return
 	}
 
-	cli := cmd.DialToCmdService()
+	cli := rpc.DialToCmdService()
 	rsp, err := cli.P2PSendTopicMsg(context.Background(), &pbs.TopicMsg{
 		Topic: topic,
 		Msg:   msgBody,
@@ -74,7 +83,7 @@ func showPeerAction(c *cobra.Command, _ []string) {
 		_ = c.Usage()
 		return
 	}
-	cli := cmd.DialToCmdService()
+	cli := rpc.DialToCmdService()
 	rsp, err := cli.P2PShowPeers(context.Background(), &pbs.ShowPeer{
 		Topic: topic,
 	})
@@ -83,4 +92,8 @@ func showPeerAction(c *cobra.Command, _ []string) {
 		panic(err)
 	}
 	fmt.Println(rsp.Msg)
+}
+
+func rpcUsage(c *cobra.Command, _ []string) {
+	_ = c.Usage()
 }
