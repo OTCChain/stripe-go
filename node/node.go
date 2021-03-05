@@ -1,6 +1,9 @@
 package node
 
-import "github.com/otcChain/chord-go/p2p"
+import (
+	"github.com/otcChain/chord-go/p2p"
+	"github.com/otcChain/chord-go/rpc"
+)
 
 type ChordNodeV1 struct {
 }
@@ -10,17 +13,23 @@ func newNode() *ChordNodeV1 {
 	return n
 }
 
-func (fe *ChordNodeV1) Setup() error {
+func (cn *ChordNodeV1) Setup() error {
 	if err := p2p.Inst().LaunchUp(); err != nil {
 		return err
+	}
+
+	for id, cb := range publicHttpRpcApi {
+		if err := rpc.Inst().RegisterHttpSrv(id, cb); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func (fe *ChordNodeV1) Start() {
+func (cn *ChordNodeV1) Start() {
 
 }
-func (fe *ChordNodeV1) ShutDown() {
+func (cn *ChordNodeV1) ShutDown() {
 
 }

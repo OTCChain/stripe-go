@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/golang/protobuf v1.4.2
+	github.com/gorilla/websocket v1.4.2
 	github.com/herumi/bls-eth-go-binary v0.0.0-20210226112520-435ed8c04ddd
 	github.com/ipfs/go-ds-badger v0.2.4
 	github.com/ipfs/go-log/v2 v2.1.1

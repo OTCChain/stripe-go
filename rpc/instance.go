@@ -7,18 +7,20 @@ import (
 
 type Server interface {
 	StartService() error
+	RegisterHttpSrv(name string, fn HttpRpcProvider) error
 }
 
 type ServiceManager struct {
-	services map[string]Rpc
+	cmdRpc  *cmdService
+	httpRpc *HttpRpc
+	wsRpc   *WsRpc
 }
 
-type Rpc interface {
-	StartRpc() error
-}
-
-var _instance Server
-var once sync.Once
+var (
+	HttpRpcInvalid = fmt.Errorf("http rpc serivice is not valaible")
+	_instance      Server
+	once           sync.Once
+)
 
 func Inst() Server {
 	once.Do(func() {
@@ -28,28 +30,44 @@ func Inst() Server {
 }
 
 func newServiceManager() Server {
-	sm := &ServiceManager{
-		services: make(map[string]Rpc),
-	}
+	sm := &ServiceManager{}
 
 	if config.CmdEnabled {
-		sm.services[SrvNameCmd] = newCmdRpc()
+		sm.cmdRpc = newCmdRpc()
 	}
 	if config.HttpEnabled {
-		sm.services[SrvNameHttp] = newHttpRpc()
+		sm.httpRpc = newHttpRpc()
 	}
 	if config.WsEnabled {
-		sm.services[SrvNameWs] = newWsRpc()
+		sm.wsRpc = newWsRpc()
 	}
 
 	return sm
 }
 
 func (sm *ServiceManager) StartService() error {
-	for name, srv := range sm.services {
-		if err := srv.StartRpc(); err != nil {
-			return fmt.Errorf("start Rpc[%s] failed:%s", name, err)
+	if sm.cmdRpc != nil {
+		if err := sm.cmdRpc.StartRpc(); err != nil {
+			return err
 		}
 	}
+	if sm.httpRpc != nil {
+		if err := sm.httpRpc.StartRpc(); err != nil {
+			return err
+		}
+	}
+	if sm.wsRpc != nil {
+		if err := sm.wsRpc.StartRpc(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (sm *ServiceManager) RegisterHttpSrv(name string, fn HttpRpcProvider) error {
+	if sm.httpRpc == nil {
+		return HttpRpcInvalid
+	}
+	sm.httpRpc.regisService(name, fn)
 	return nil
 }

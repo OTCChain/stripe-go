@@ -1,22 +1,20 @@
 package chordclient
 
 import (
-	"github.com/otcChain/chord-go/common"
+	"context"
 	"github.com/otcChain/chord-go/rpc"
-	"math/big"
 )
 
 type Client struct {
-	c *rpc.Client
+	c rpc.Client
 }
 
-// Dial connects a client to the given URL.
-func Dial(rawurl string) (*Client, error) {
-	return DialContext(context.Background(), rawurl)
+func Dial(rawUrl string) (*Client, error) {
+	return DialContext(context.Background(), rawUrl)
 }
 
-func DialContext(ctx context.Context, rawurl string) (*Client, error) {
-	c, err := rpc.DialContext(ctx, rawurl)
+func DialContext(ctx context.Context, rawUrl string) (*Client, error) {
+	c, err := rpc.DialContext(ctx, rawUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +22,7 @@ func DialContext(ctx context.Context, rawurl string) (*Client, error) {
 }
 
 // NewClient creates a client that uses the given RPC client.
-func NewClient(c *rpc.Client) *Client {
+func NewClient(c rpc.Client) *Client {
 	return &Client{c}
 }
 

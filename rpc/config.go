@@ -5,9 +5,6 @@ const (
 	DefaultHttpPort = 6666
 	DefaultWsPort   = 6646
 	DefaultHost     = "localhost"
-	SrvNameCmd      = "cmd"
-	SrvNameHttp     = "http"
-	SrvNameWs       = "ws"
 )
 
 type Config struct {

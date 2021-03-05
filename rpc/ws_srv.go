@@ -7,7 +7,7 @@ func (wr *WsRpc) StartRpc() error {
 	return nil
 }
 
-func newWsRpc() Rpc {
+func newWsRpc() *WsRpc {
 	wr := &WsRpc{}
 	return wr
 }

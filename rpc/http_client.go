@@ -2,27 +2,17 @@ package rpc
 
 import (
 	"context"
+	//mapset "github.com/deckarep/golang-set"
 	"net/http"
 	"net/url"
 )
 
 type HttpClient struct {
-	idCounter     uint32
-	reconnectFunc reconnectFunc
-	writeConn     jsonWriter
+	ctx context.Context
 }
-type reconnectFunc func(ctx context.Context) (ServerCodec, error)
 
-func newHttpClient(ctx context.Context, connect reconnectFunc) (*HttpClient, error) {
-	conn, err := connect(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c := &HttpClient{
-		reconnectFunc: connect,
-		writeConn:     conn,
-	}
-	return c, nil
+func DialHTTP(endpoint string) (Client, error) {
+	return DialHTTPWithClient(endpoint, new(http.Client))
 }
 
 func DialHTTPWithClient(endpoint string, client *http.Client) (*HttpClient, error) {
@@ -35,16 +25,11 @@ func DialHTTPWithClient(endpoint string, client *http.Client) (*HttpClient, erro
 	headers := make(http.Header, 2)
 	headers.Set("accept", contentType)
 	headers.Set("content-type", contentType)
+	return &HttpClient{
+		ctx: ctx,
+	}, nil
+}
 
-	var reconnFunc = func(ctx context.Context) (ServerCodec, error) {
-		hc := &httpConn{
-			client:  client,
-			headers: headers,
-			url:     endpoint,
-			closeCh: make(chan interface{}),
-		}
-		return hc, nil
-	}
-
-	return newHttpClient(ctx, reconnFunc)
+func (h HttpClient) Close() {
+	return
 }
