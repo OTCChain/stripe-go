@@ -25,8 +25,12 @@ type HttpRpc struct {
 }
 
 func (hr *HttpRpc) StartRpc() error {
-	endPoint := fmt.Sprintf("%s:%d", config.HttpIP, config.HttpPort)
-	return http.ListenAndServe(endPoint, hr.apis)
+	endPoint := fmt.Sprintf("%s:%d", _rpcConfig.HttpIP, _rpcConfig.HttpPort)
+	server := &http.Server{Addr: endPoint, Handler: hr.apis}
+	server.ReadTimeout = _rpcConfig.ReadTimeout
+	server.WriteTimeout = _rpcConfig.WriteTimeout
+	server.IdleTimeout = _rpcConfig.IdleTimeout
+	return server.ListenAndServe()
 }
 
 func validateRequest(r *http.Request) (int, error) {
@@ -113,7 +117,7 @@ func (hr *HttpRpc) processMsg(w http.ResponseWriter, r *http.Request, provider H
 	}
 }
 
-func (hr *HttpRpc) regisService(name string, provider HttpRpcProvider) {
+func (hr *HttpRpc) regService(name string, provider HttpRpcProvider) {
 	hr.apis.HandleFunc(name, func(writer http.ResponseWriter, request *http.Request) {
 		defer func() {
 			if r := recover(); r != nil {

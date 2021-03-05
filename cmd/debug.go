@@ -3,9 +3,9 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/otcChain/chord-go/internal"
 	"github.com/otcChain/chord-go/p2p"
 	"github.com/otcChain/chord-go/pbs"
-	"github.com/otcChain/chord-go/rpc"
 	"github.com/spf13/cobra"
 )
 
@@ -66,7 +66,7 @@ func p2pAction(c *cobra.Command, _ []string) {
 		return
 	}
 
-	cli := rpc.DialToCmdService()
+	cli := internal.DialToCmdService()
 	rsp, err := cli.P2PSendTopicMsg(context.Background(), &pbs.TopicMsg{
 		Topic: topic,
 		Msg:   msgBody,
@@ -83,7 +83,7 @@ func showPeerAction(c *cobra.Command, _ []string) {
 		_ = c.Usage()
 		return
 	}
-	cli := rpc.DialToCmdService()
+	cli := internal.DialToCmdService()
 	rsp, err := cli.P2PShowPeers(context.Background(), &pbs.ShowPeer{
 		Topic: topic,
 	})

@@ -2,6 +2,10 @@ package rpc
 
 import "encoding/json"
 
+const (
+	vsn = "1.0"
+)
+
 type JsonError struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
@@ -10,8 +14,7 @@ type JsonError struct {
 
 type JsonRpcMessageItem struct {
 	Version string          `json:"jsonrpc,omitempty"`
-	ID      json.RawMessage `json:"id,omitempty"`
-	Method  string          `json:"method,omitempty"`
+	ID      uint32          `json:"id,omitempty"`
 	Params  json.RawMessage `json:"params,omitempty"`
 	Error   *JsonError      `json:"error,omitempty"`
 	Result  json.RawMessage `json:"result,omitempty"`

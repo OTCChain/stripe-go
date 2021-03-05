@@ -1,4 +1,4 @@
-package rpc
+package internal
 
 import (
 	"context"
@@ -12,9 +12,11 @@ import (
 
 type cmdService struct{}
 
-func newCmdRpc() *cmdService {
-	return &cmdService{}
-}
+const DefaultCmdPort = 8848
+
+var (
+	_instance = &cmdService{}
+)
 
 func (c *cmdService) P2PShowPeers(_ context.Context, peer *pbs.ShowPeer) (*pbs.CommonResponse, error) {
 	network, ok := p2p.Inst().(*p2p.NetworkV1)
@@ -40,29 +42,26 @@ func (c *cmdService) P2PSendTopicMsg(_ context.Context, msg *pbs.TopicMsg) (*pbs
 	}, nil
 }
 
-func (c *cmdService) StartRpc() error {
-	var address = fmt.Sprintf("127.0.0.1:%d", config.CmdPort)
+func StartRpc() {
+	var address = fmt.Sprintf("127.0.0.1:%d", DefaultCmdPort)
 	l, err := net.Listen("tcp", address)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	cmdServer := grpc.NewServer()
 
-	pbs.RegisterCmdServiceServer(cmdServer, c)
+	pbs.RegisterCmdServiceServer(cmdServer, _instance)
 
 	reflection.Register(cmdServer)
-	go func() {
-		if err := cmdServer.Serve(l); err != nil {
-			panic(err)
-		}
-	}()
-	return nil
+	if err := cmdServer.Serve(l); err != nil {
+		panic(err)
+	}
 }
 
 func DialToCmdService() pbs.CmdServiceClient {
 
-	var address = fmt.Sprintf("127.0.0.1:%d", config.CmdPort)
+	var address = fmt.Sprintf("127.0.0.1:%d", DefaultCmdPort)
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {

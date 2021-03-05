@@ -21,6 +21,14 @@ type WsClient struct {
 	didClose chan struct{} // closed when client quits
 }
 
+func (c *WsClient) Call(result interface{}, url string, args ...interface{}) error {
+	panic("implement me")
+}
+
+func (c *WsClient) CallContext(ctx context.Context, result interface{}, url string, args ...interface{}) error {
+	panic("implement me")
+}
+
 var wsBufferPool = new(sync.Pool)
 
 func DialWebsocket(ctx context.Context, endpoint, origin string) (Client, error) {
@@ -62,7 +70,9 @@ func (e wsHandshakeError) Error() string {
 	return s
 }
 
-func DialWebsocketWithDialer(ctx context.Context, endpoint, origin string, dialer websocket.Dialer) (Client, error) {
+func DialWebsocketWithDialer(ctx context.Context,
+	endpoint, origin string,
+	dialer websocket.Dialer) (Client, error) {
 	//endpoint, header, err := wsClientHeaders(endpoint, origin)
 	//if err != nil {
 	//	return nil, err

@@ -3,6 +3,7 @@ package rpc
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 type Server interface {
@@ -11,9 +12,15 @@ type Server interface {
 }
 
 type ServiceManager struct {
-	cmdRpc  *cmdService
 	httpRpc *HttpRpc
 	wsRpc   *WsRpc
+}
+
+// HTTPTimeouts represents the configuration params for the HTTP RPC server.
+type HTTPTimeouts struct {
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
 }
 
 var (
@@ -32,13 +39,10 @@ func Inst() Server {
 func newServiceManager() Server {
 	sm := &ServiceManager{}
 
-	if config.CmdEnabled {
-		sm.cmdRpc = newCmdRpc()
-	}
-	if config.HttpEnabled {
+	if _rpcConfig.HttpEnabled {
 		sm.httpRpc = newHttpRpc()
 	}
-	if config.WsEnabled {
+	if _rpcConfig.WsEnabled {
 		sm.wsRpc = newWsRpc()
 	}
 
@@ -46,11 +50,7 @@ func newServiceManager() Server {
 }
 
 func (sm *ServiceManager) StartService() error {
-	if sm.cmdRpc != nil {
-		if err := sm.cmdRpc.StartRpc(); err != nil {
-			return err
-		}
-	}
+
 	if sm.httpRpc != nil {
 		if err := sm.httpRpc.StartRpc(); err != nil {
 			return err
@@ -68,6 +68,6 @@ func (sm *ServiceManager) RegisterHttpSrv(name string, fn HttpRpcProvider) error
 	if sm.httpRpc == nil {
 		return HttpRpcInvalid
 	}
-	sm.httpRpc.regisService(name, fn)
+	sm.httpRpc.regService(name, fn)
 	return nil
 }

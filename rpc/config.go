@@ -1,42 +1,44 @@
 package rpc
 
+import "time"
+
 const (
-	DefaultCmdPort  = 8848
-	DefaultHttpPort = 6666
-	DefaultWsPort   = 6646
-	DefaultHost     = "localhost"
+	DefaultHttpPort     = 6666
+	DefaultWsPort       = 6646
+	DefaultReadTimeout  = 30 * time.Second
+	DefaultWriteTimeout = 30 * time.Second
+	DefaultIdleTimeout  = 120 * time.Second
+	DefaultHost         = "localhost"
 )
 
 type Config struct {
-	CmdEnabled bool   `json:"cmd.en"`
-	CmdIP      string `json:"cmd.ip"`
-	CmdPort    int16  `json:"cmd.port"`
-
-	HttpEnabled bool   `json:"http.en"`
-	HttpIP      string `json:"http.ip"`
-	HttpPort    int16  `json:"http.port"`
+	HttpEnabled  bool          `json:"http.en"`
+	HttpIP       string        `json:"http.ip"`
+	HttpPort     int16         `json:"http.port"`
+	ReadTimeout  time.Duration `json:"http.r.timeout"`
+	WriteTimeout time.Duration `json:"http.w.timeout"`
+	IdleTimeout  time.Duration `json:"http.i.timeout"`
 
 	WsEnabled bool   `json:"ws.en"`
 	WsIP      string `json:"ws.ip"`
 	WsPort    int16  `json:"ws.port"`
 }
 
-var config *Config = nil
+var _rpcConfig *Config = nil
 
 func InitConfig(c *Config) {
-	config = c
+	_rpcConfig = c
 }
 
 func DefaultConfig() *Config {
 
 	return &Config{
-		CmdEnabled: true,
-		CmdIP:      DefaultHost,
-		CmdPort:    DefaultCmdPort,
-
-		HttpEnabled: false,
-		HttpIP:      DefaultHost,
-		HttpPort:    DefaultHttpPort,
+		HttpEnabled:  false,
+		HttpIP:       DefaultHost,
+		HttpPort:     DefaultHttpPort,
+		ReadTimeout:  DefaultReadTimeout,
+		WriteTimeout: DefaultWriteTimeout,
+		IdleTimeout:  DefaultIdleTimeout,
 
 		WsEnabled: false,
 		WsIP:      DefaultHost,

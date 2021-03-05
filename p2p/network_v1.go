@@ -42,6 +42,7 @@ func newNetwork() *NetworkV1 {
 }
 
 func (nt *NetworkV1) LaunchUp() error {
+	nt.initRouter()
 	return nt.msgManager.start()
 }
 

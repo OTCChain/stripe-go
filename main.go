@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/otcChain/chord-go/cmd"
 	"github.com/otcChain/chord-go/consensus"
+	"github.com/otcChain/chord-go/internal"
 	"github.com/otcChain/chord-go/node"
 	"github.com/otcChain/chord-go/p2p"
 	"github.com/otcChain/chord-go/rpc"
@@ -30,8 +31,9 @@ type SysParam struct {
 	network  string
 	password string
 	keyAddr  string
-	cmdPort  int16
+	httpIP   string
 	httpPort int16
+	wsIP     string
 	wsPort   int16
 }
 
@@ -74,10 +76,12 @@ func init() {
 	flags.StringVarP(&param.baseDir, "dir",
 		"d", cmd.DefaultBaseDir, "chord -d [BASIC DIRECTORY]")
 
-	flags.Int16Var(&param.cmdPort, "cmd.port", -1,
-		"chord --cmd.port=[Port]")
+	flags.StringVar(&param.httpIP, "http.ip", "",
+		"chord --http.ip=[IP]")
 	flags.Int16Var(&param.httpPort, "http.port", -1,
 		"chord --http.port=[Port]")
+	flags.StringVar(&param.wsIP, "ws.IP", "",
+		"chord --ws.ip=[Port]")
 	flags.Int16Var(&param.wsPort, "ws.port", -1,
 		"chord --ws.port=[Port]")
 
@@ -121,13 +125,23 @@ func initChordConfig() (err error) {
 	consensus.InitConfig(result.CCfg)
 	utils.InitConfig(result.UCfg)
 
-	if param.cmdPort != -1 {
-		result.RCfg.CmdPort = param.cmdPort
+	if param.httpPort != -1 {
+		result.RCfg.HttpEnabled = true
+		result.RCfg.HttpPort = param.httpPort
+		if param.httpIP != "" {
+			result.RCfg.HttpIP = param.httpIP
+		}
+	}
 
+	if param.wsPort != -1 {
+		result.RCfg.WsEnabled = true
+		result.RCfg.WsPort = param.wsPort
+		if param.wsIP != "" {
+			result.RCfg.WsIP = param.wsIP
+		}
 	}
 
 	rpc.InitConfig(result.RCfg)
-
 	return
 }
 
@@ -190,6 +204,8 @@ func mainRun(_ *cobra.Command, _ []string) {
 	if err := rpc.Inst().StartService(); err != nil {
 		panic(err)
 	}
+
+	go internal.StartRpc()
 
 	if err := node.Inst().Setup(); err != nil {
 		panic(err)
