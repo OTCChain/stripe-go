@@ -15,12 +15,18 @@ type NetworkV1 struct {
 }
 
 func newNetwork() *NetworkV1 {
+	if config == nil {
+		panic("Please init p2p config first")
+	}
+
 	opts := config.initOptions()
 	ctx, cancel := context.WithCancel(context.Background())
+
 	h, err := libp2p.New(ctx, opts...)
 	if err != nil {
 		panic(err)
 	}
+
 	ps, err := newPubSub(ctx, h)
 	if err != nil {
 		panic(err)

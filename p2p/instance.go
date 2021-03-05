@@ -1,6 +1,11 @@
 package p2p
 
-import "sync"
+import (
+	"context"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-pubsub"
+	"sync"
+)
 
 type ChordNetwork interface {
 	LaunchUp() error
@@ -25,8 +30,16 @@ func (mc MessageChannel) String() string {
 
 const (
 	MSConsensus MessageChannel = "/0.1/Global/CONSENSUS"
-	MSClientRpc MessageChannel = "/0.1/Global/CLIENT"
+	MSNodeMsg   MessageChannel = "/0.1/Global/NODE"
 	MSDebug     MessageChannel = "/0.1/Global/TEST"
 )
 
-var SystemTopics = []MessageChannel{MSConsensus, MSClientRpc, MSDebug}
+var SystemTopics = []MessageChannel{MSConsensus, MSNodeMsg, MSDebug}
+
+func consensusMsgValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+	return pubsub.ValidationAccept
+}
+
+func nodeMsgValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+	return pubsub.ValidationAccept
+}

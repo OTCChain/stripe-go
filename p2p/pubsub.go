@@ -11,6 +11,7 @@ import (
 	"github.com/libp2p/go-libp2p-pubsub"
 	"github.com/otcChain/chord-go/utils"
 	"sync"
+	"time"
 )
 
 type PubSub struct {
@@ -24,14 +25,20 @@ type PubSub struct {
 
 func newPubSub(ctx context.Context, h host.Host) (*PubSub, error) {
 	dhtOpts, err := config.dhtOpts()
+
 	kademliaDHT, err := dht.New(ctx, h, dhtOpts...)
 	if err != nil {
 		return nil, err
 	}
+
 	disc := discovery.NewRoutingDiscovery(kademliaDHT)
 	psOption := config.pubSubOpts(disc)
 	ps, err := pubsub.NewGossipSub(ctx, h, psOption...)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := initSystemTopic(ps); err != nil {
 		return nil, err
 	}
 
@@ -51,6 +58,27 @@ func newPubSub(ctx context.Context, h host.Host) (*PubSub, error) {
 		disc:   disc,
 		topics: topics,
 	}, nil
+}
+
+func initSystemTopic(ps *pubsub.PubSub) error {
+
+	err := ps.RegisterTopicValidator(MSConsensus.String(),
+		consensusMsgValidator,
+		pubsub.WithValidatorTimeout(250*time.Millisecond),
+		pubsub.WithValidatorConcurrency(config.PsConf.MaxConsTopicThread))
+
+	if err != nil {
+		return err
+	}
+
+	err = ps.RegisterTopicValidator(MSNodeMsg.String(),
+		nodeMsgValidator,
+		pubsub.WithValidatorConcurrency(config.PsConf.MaxNodeTopicThread))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *PubSub) start() error {

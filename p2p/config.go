@@ -23,7 +23,7 @@ const (
 	DefaultValidateQueueSize = 512
 
 	DefaultConsensusTopicThreadSize = 1 << 13
-	DefaultOtherTopicThreadSize     = 1 << 11
+	DefaultNodeTopicThreadSize      = 1 << 11
 
 	DHTPrefix = "chord"
 )
@@ -35,11 +35,11 @@ var (
 )
 
 type pubSubConfig struct {
-	MaxMsgSize          int `json:"max_msg_size"`
-	MaxValidateQueue    int `json:"validate_queue_size"`
-	MaxOutQueue         int `json:"out_queue_size"`
-	MaxConsTopicThread  int `json:"consensus_topic_threads"`
-	MaxOtherTopicThread int `json:"other_topic_threads"`
+	MaxMsgSize         int `json:"max_msg_size"`
+	MaxValidateQueue   int `json:"validate_queue_size"`
+	MaxOutQueue        int `json:"out_queue_size"`
+	MaxConsTopicThread int `json:"consensus_topic_threads"`
+	MaxNodeTopicThread int `json:"node_topic_threads"`
 }
 
 func (c *pubSubConfig) String() string {
@@ -48,7 +48,7 @@ func (c *pubSubConfig) String() string {
 	s += fmt.Sprintf("\n*max validate queue size:	%d", c.MaxValidateQueue)
 	s += fmt.Sprintf("\n*max out queue size:		%d", c.MaxOutQueue)
 	s += fmt.Sprintf("\n*max consensus topic thread:	%d", c.MaxConsTopicThread)
-	s += fmt.Sprintf("\n*max common topic thread:	%d", c.MaxOtherTopicThread)
+	s += fmt.Sprintf("\n*max common topic thread:	%d", c.MaxNodeTopicThread)
 	s += fmt.Sprintf("\n*************************\n")
 	return s
 }
@@ -109,11 +109,11 @@ func DefaultConfig(isMain bool, base string) *Config {
 		Port:     DefaultP2pPort,
 		LogLevel: level,
 		PsConf: &pubSubConfig{
-			MaxMsgSize:          DefaultMaxMessageSize,
-			MaxValidateQueue:    DefaultValidateQueueSize,
-			MaxOutQueue:         DefaultOutboundQueueSize,
-			MaxConsTopicThread:  DefaultConsensusTopicThreadSize,
-			MaxOtherTopicThread: DefaultOtherTopicThreadSize,
+			MaxMsgSize:         DefaultMaxMessageSize,
+			MaxValidateQueue:   DefaultValidateQueueSize,
+			MaxOutQueue:        DefaultOutboundQueueSize,
+			MaxConsTopicThread: DefaultConsensusTopicThreadSize,
+			MaxNodeTopicThread: DefaultNodeTopicThreadSize,
 		},
 		DHTConf: &dhtConfig{
 			DataStoreFile: dhtDir,
@@ -154,7 +154,7 @@ func (c *Config) pubSubOpts(disc discovery.Discovery) []pubsub.Option {
 		pubsub.WithValidateQueueSize(c.PsConf.MaxValidateQueue),
 		pubsub.WithPeerOutboundQueueSize(c.PsConf.MaxOutQueue),
 		pubsub.WithValidateWorkers(runtime.NumCPU() * 2),
-		pubsub.WithValidateThrottle(c.PsConf.MaxConsTopicThread + c.PsConf.MaxOtherTopicThread),
+		pubsub.WithValidateThrottle(c.PsConf.MaxConsTopicThread + c.PsConf.MaxNodeTopicThread),
 		pubsub.WithMaxMessageSize(c.PsConf.MaxMsgSize),
 		pubsub.WithDiscovery(disc),
 	}
