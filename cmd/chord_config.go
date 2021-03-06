@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/otcChain/chord-go/chain"
 	"github.com/otcChain/chord-go/consensus"
-	"github.com/otcChain/chord-go/node"
 	"github.com/otcChain/chord-go/p2p"
 	"github.com/otcChain/chord-go/rpc"
 	"github.com/otcChain/chord-go/utils"
@@ -16,7 +16,7 @@ type CfgPerNetwork struct {
 	Name string            `json:"name"`
 	PCfg *p2p.Config       `json:"p2p"`
 	CCfg *consensus.Config `json:"consensus"`
-	NCfg *node.Config      `json:"node"`
+	NCfg *chain.Config     `json:"node"`
 	UCfg *utils.Config     `json:"utils"`
 	WCfg *wallet.Config    `json:"wallet"`
 	RCfg *rpc.Config       `json:"rpc"`

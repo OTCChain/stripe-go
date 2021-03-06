@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/otcChain/chord-go/chain"
 	"github.com/otcChain/chord-go/cmd"
 	"github.com/otcChain/chord-go/consensus"
 	"github.com/otcChain/chord-go/internal"
-	"github.com/otcChain/chord-go/node"
 	"github.com/otcChain/chord-go/p2p"
 	"github.com/otcChain/chord-go/rpc"
 	"github.com/otcChain/chord-go/utils"
@@ -120,11 +120,10 @@ func initChordConfig() (err error) {
 	fmt.Println(result.String())
 
 	wallet.InitConfig(result.WCfg)
-	node.InitConfig(result.NCfg)
+	chain.InitConfig(result.NCfg)
 	p2p.InitConfig(result.PCfg)
 	consensus.InitConfig(result.CCfg)
 	utils.InitConfig(result.UCfg)
-	rpc.InitConfig(result.RCfg)
 
 	if param.httpPort != -1 {
 		result.RCfg.HttpEnabled = true
@@ -143,6 +142,7 @@ func initChordConfig() (err error) {
 	}
 
 	rpc.InitConfig(result.RCfg)
+
 	return
 }
 
@@ -208,11 +208,11 @@ func mainRun(_ *cobra.Command, _ []string) {
 
 	go internal.StartRpc()
 
-	if err := node.Inst().Setup(); err != nil {
+	if err := chain.Inst().Setup(); err != nil {
 		panic(err)
 	}
 
-	node.Inst().Start()
+	chain.Inst().Start()
 
 	waitShutdownSignal()
 }
@@ -233,6 +233,6 @@ func waitShutdownSignal() {
 		syscall.SIGQUIT)
 
 	sig := <-sigCh
-	node.Inst().ShutDown()
+	chain.Inst().ShutDown()
 	fmt.Printf("\n>>>>>>>>>>process finished(%s)<<<<<<<<<<\n", sig)
 }

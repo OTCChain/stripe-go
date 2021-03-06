@@ -1,4 +1,4 @@
-package node
+package chain
 
 import (
 	"github.com/otcChain/chord-go/p2p"
