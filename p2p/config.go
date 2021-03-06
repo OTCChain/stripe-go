@@ -86,7 +86,7 @@ func (c Config) String() string {
 	return s
 }
 
-var config *Config = nil
+var _p2pConfig *Config = nil
 
 func DefaultConfig(isMain bool, base string) *Config {
 	var (
@@ -123,11 +123,11 @@ func DefaultConfig(isMain bool, base string) *Config {
 }
 
 func InitConfig(c *Config) {
-	config = c
+	_p2pConfig = c
 }
 
 func (c *Config) initOptions() []libp2p.Option {
-	listenAddr, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", config.Port))
+	listenAddr, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", _p2pConfig.Port))
 	if err != nil {
 		panic(err)
 	}

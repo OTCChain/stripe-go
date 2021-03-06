@@ -27,9 +27,15 @@ type HttpRpc struct {
 func (hr *HttpRpc) StartRpc() error {
 	endPoint := fmt.Sprintf("%s:%d", _rpcConfig.HttpIP, _rpcConfig.HttpPort)
 	server := &http.Server{Addr: endPoint, Handler: hr.apis}
+
 	server.ReadTimeout = _rpcConfig.ReadTimeout
 	server.WriteTimeout = _rpcConfig.WriteTimeout
 	server.IdleTimeout = _rpcConfig.IdleTimeout
+
+	for id, cb := range HttpRpcApis {
+		hr.regService(id, cb)
+	}
+
 	return server.ListenAndServe()
 }
 

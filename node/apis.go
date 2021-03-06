@@ -5,13 +5,9 @@ import (
 	"github.com/otcChain/chord-go/rpc"
 )
 
-var (
-	publicHttpRpcApi = make(rpc.HttpApiRouter)
-)
-
-func (cn *ChordNodeV1) initRouter() {
-	publicHttpRpcApi["/chain/ID"] = cn.ChainID
-	publicHttpRpcApi["/chain/Height"] = cn.ChainHeight
+func (cn *ChordNodeV1) initRpcApis() {
+	rpc.HttpRpcApis["/chain/ID"] = cn.ChainID
+	rpc.HttpRpcApis["/chain/Height"] = cn.ChainHeight
 }
 
 func (cn *ChordNodeV1) ChainID(*rpc.JsonRpcMessageItem) (json.RawMessage, *rpc.JsonError) {

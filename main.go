@@ -124,6 +124,7 @@ func initChordConfig() (err error) {
 	p2p.InitConfig(result.PCfg)
 	consensus.InitConfig(result.CCfg)
 	utils.InitConfig(result.UCfg)
+	rpc.InitConfig(result.RCfg)
 
 	if param.httpPort != -1 {
 		result.RCfg.HttpEnabled = true

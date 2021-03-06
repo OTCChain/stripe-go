@@ -1,21 +1,40 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+	"math/big"
+)
+
+var (
+	MainChain = big.NewInt(1)
+	TestChain = big.NewInt(2)
+)
 
 type Config struct {
+	ChainID *big.Int
 }
 
 func (c Config) String() string {
 	s := fmt.Sprintf("\n<-------------Node Config-----------")
+	s += fmt.Sprintf("\n*chain id:			%s", c.ChainID.String())
 	s += fmt.Sprintf("\n----------------------------------->\n")
 	return s
 }
 
-var config *Config = &Config{}
+var _nodeConfig *Config = &Config{}
 
 func InitConfig(c *Config) {
-	config = c
+	_nodeConfig = c
 }
-func InitDefaultConfig() *Config {
-	return &Config{}
+func DefaultConfig(isMain bool, base string) *Config {
+	var chainID *big.Int
+	if isMain {
+		chainID = MainChain
+	} else {
+		chainID = TestChain
+	}
+
+	return &Config{
+		ChainID: chainID,
+	}
 }

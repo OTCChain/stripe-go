@@ -11,11 +11,11 @@ func (c Config) String() string {
 	return s
 }
 
-var config *Config = &Config{}
+var _consConfig *Config = &Config{}
 
 func InitConfig(c *Config) {
-	config = c
+	_consConfig = c
 }
-func InitDefaultConfig() *Config {
+func DefaultConfig(isMain bool, baseDir string) *Config {
 	return &Config{}
 }

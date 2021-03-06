@@ -24,7 +24,7 @@ type PubSub struct {
 }
 
 func newPubSub(ctx context.Context, h host.Host) (*PubSub, error) {
-	dhtOpts, err := config.dhtOpts()
+	dhtOpts, err := _p2pConfig.dhtOpts()
 
 	kademliaDHT, err := dht.New(ctx, h, dhtOpts...)
 	if err != nil {
@@ -32,7 +32,7 @@ func newPubSub(ctx context.Context, h host.Host) (*PubSub, error) {
 	}
 
 	disc := discovery.NewRoutingDiscovery(kademliaDHT)
-	psOption := config.pubSubOpts(disc)
+	psOption := _p2pConfig.pubSubOpts(disc)
 	ps, err := pubsub.NewGossipSub(ctx, h, psOption...)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func initSystemTopic(ps *pubsub.PubSub) error {
 	err := ps.RegisterTopicValidator(MSConsensus.String(),
 		consensusMsgValidator,
 		pubsub.WithValidatorTimeout(250*time.Millisecond),
-		pubsub.WithValidatorConcurrency(config.PsConf.MaxConsTopicThread))
+		pubsub.WithValidatorConcurrency(_p2pConfig.PsConf.MaxConsTopicThread))
 
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func initSystemTopic(ps *pubsub.PubSub) error {
 
 	err = ps.RegisterTopicValidator(MSNodeMsg.String(),
 		nodeMsgValidator,
-		pubsub.WithValidatorConcurrency(config.PsConf.MaxNodeTopicThread))
+		pubsub.WithValidatorConcurrency(_p2pConfig.PsConf.MaxNodeTopicThread))
 	if err != nil {
 		return err
 	}

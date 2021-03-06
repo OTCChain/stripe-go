@@ -15,11 +15,11 @@ type NetworkV1 struct {
 }
 
 func newNetwork() *NetworkV1 {
-	if config == nil {
-		panic("Please init p2p config first")
+	if _p2pConfig == nil {
+		panic("Please init p2p _p2pConfig first")
 	}
 
-	opts := config.initOptions()
+	opts := _p2pConfig.initOptions()
 	ctx, cancel := context.WithCancel(context.Background())
 
 	h, err := libp2p.New(ctx, opts...)
@@ -37,12 +37,13 @@ func newNetwork() *NetworkV1 {
 		ctx:        ctx,
 		ctxCancel:  cancel,
 	}
+	n.initRpcApis()
+
 	utils.LogInst().Info().Msgf("p2p with id[%s] created addrs:%s", h.ID(), h.Addrs())
 	return n
 }
 
 func (nt *NetworkV1) LaunchUp() error {
-	nt.initRouter()
 	return nt.msgManager.start()
 }
 

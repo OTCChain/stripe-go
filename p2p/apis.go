@@ -5,18 +5,14 @@ import (
 	"github.com/otcChain/chord-go/rpc"
 )
 
-var (
-	debugHttpRpcApis = make(rpc.HttpApiRouter)
-)
-
 type RpcPushTopic struct {
 	Topics  string `json:"topic"`
 	Message string `json:"msg"`
 }
 
-func (nt *NetworkV1) initRouter() {
-	debugHttpRpcApis["/p2p/PeerList"] = nt.ApiPeesList
-	debugHttpRpcApis["/p2p/PushMsg"] = nt.ApiPushMsg
+func (nt *NetworkV1) initRpcApis() {
+	rpc.HttpRpcApis["/p2p/PeerList"] = nt.ApiPeesList
+	rpc.HttpRpcApis["/p2p/PushMsg"] = nt.ApiPushMsg
 }
 
 func (nt *NetworkV1) ApiPeesList(msg *rpc.JsonRpcMessageItem) (json.RawMessage, *rpc.JsonError) {

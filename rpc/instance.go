@@ -1,14 +1,12 @@
 package rpc
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
 
 type Server interface {
 	StartService() error
-	RegisterHttpSrv(name string, fn HttpRpcProvider) error
 }
 
 type ServiceManager struct {
@@ -24,9 +22,9 @@ type HTTPTimeouts struct {
 }
 
 var (
-	HttpRpcInvalid = fmt.Errorf("http rpc serivice is not valaible")
-	_instance      Server
-	once           sync.Once
+	_instance   Server
+	once        sync.Once
+	HttpRpcApis = make(HttpApiRouter)
 )
 
 func Inst() Server {
@@ -50,7 +48,6 @@ func newServiceManager() Server {
 }
 
 func (sm *ServiceManager) StartService() error {
-
 	if sm.httpRpc != nil {
 		if err := sm.httpRpc.StartRpc(); err != nil {
 			return err
@@ -61,13 +58,5 @@ func (sm *ServiceManager) StartService() error {
 			return err
 		}
 	}
-	return nil
-}
-
-func (sm *ServiceManager) RegisterHttpSrv(name string, fn HttpRpcProvider) error {
-	if sm.httpRpc == nil {
-		return HttpRpcInvalid
-	}
-	sm.httpRpc.regService(name, fn)
 	return nil
 }
