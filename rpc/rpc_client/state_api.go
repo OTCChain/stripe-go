@@ -1,18 +1,25 @@
 package chordclient
 
+import (
+	"context"
+	"fmt"
+	"math/big"
+)
+
 // State Access
 // NetworkID returns the network ID (also known as the chain ID) for this chain.
-//func (ec *Client) NetworkID(ctx context.Context) (*big.Int, error) {
-//	version := new(big.Int)
-//	var ver string
-//	if err := ec.c.CallContext(ctx, &ver, "net_version"); err != nil {
-//		return nil, err
-//	}
-//	if _, ok := version.SetString(ver, 10); !ok {
-//		return nil, fmt.Errorf("invalid net_version result %q", ver)
-//	}
-//	return version, nil
-//}
+func (ec *Client) NetworkID(ctx context.Context) (*big.Int, error) {
+	version := new(big.Int)
+	var ver string
+	if err := ec.c.CallContext(ctx, &ver, "/p2p/nid"); err != nil {
+		return nil, err
+	}
+	if _, ok := version.SetString(ver, 10); !ok {
+		return nil, fmt.Errorf("invalid net_version result %q", ver)
+	}
+	return version, nil
+}
+
 //
 //// BalanceAt returns the wei balance of the given account.
 //// The block number can be nil, in which case the balance is taken from the latest known block.

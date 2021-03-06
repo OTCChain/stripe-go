@@ -69,11 +69,11 @@ func (h *HttpClient) buildMsg(args ...interface{}) (json.RawMessage, error) {
 	}
 	return body, nil
 }
-func (h *HttpClient) buildRequest(ctx context.Context, url string, body []byte) (*http.Request, error) {
+func (h *HttpClient) buildRequest(ctx context.Context, path string, body []byte) (*http.Request, error) {
 
 	req, err := http.NewRequestWithContext(ctx,
 		"POST",
-		url,
+		h.url+path,
 		ioutil.NopCloser(bytes.NewReader(body)))
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (h *HttpClient) buildRequest(ctx context.Context, url string, body []byte) 
 	return req, nil
 }
 
-func (h *HttpClient) CallContext(ctx context.Context, result interface{}, url string, args ...interface{}) error {
+func (h *HttpClient) CallContext(ctx context.Context, result interface{}, path string, args ...interface{}) error {
 	if result != nil && reflect.TypeOf(result).Kind() != reflect.Ptr {
 		return fmt.Errorf("call result parameter must be pointer or nil interface: %v", result)
 	}
@@ -93,7 +93,7 @@ func (h *HttpClient) CallContext(ctx context.Context, result interface{}, url st
 		return err
 	}
 
-	req, err := h.buildRequest(ctx, url, body)
+	req, err := h.buildRequest(ctx, path, body)
 	if err != nil {
 		return err
 	}

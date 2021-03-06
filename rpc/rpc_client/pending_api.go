@@ -1,5 +1,11 @@
 package chordclient
 
+import (
+	"context"
+	"github.com/otcChain/chord-go/common"
+	"github.com/otcChain/chord-go/utils/hexutil"
+)
+
 // Pending State
 
 // PendingBalanceAt returns the wei balance of the given account in the pending state.
@@ -23,14 +29,14 @@ package chordclient
 //	return result, err
 //}
 //
-//// PendingNonceAt returns the account nonce of the given account in the pending state.
-//// This is the nonce that should be used for the next transaction.
-//func (ec *Client) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
-//	var result hexutil.Uint64
-//	err := ec.c.CallContext(ctx, &result, "eth_getTransactionCount", account, "pending")
-//	return uint64(result), err
-//}
-//
+// PendingNonceAt returns the account nonce of the given account in the pending state.
+// This is the nonce that should be used for the next transaction.
+func (ec *Client) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
+	var result hexutil.Uint64
+	err := ec.c.CallContext(ctx, &result, "/tx/count", account, "pending")
+	return uint64(result), err
+}
+
 //// PendingTransactionCount returns the total number of transactions in the pending state.
 //func (ec *Client) PendingTransactionCount(ctx context.Context) (uint, error) {
 //	var num hexutil.Uint

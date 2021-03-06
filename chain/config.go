@@ -21,7 +21,7 @@ func (c Config) String() string {
 	return s
 }
 
-var _nodeConfig *Config = &Config{}
+var _nodeConfig *Config = nil
 
 func InitConfig(c *Config) {
 	_nodeConfig = c

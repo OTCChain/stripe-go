@@ -10,7 +10,7 @@ import (
 //ChainId retrieves the current chain ID for transaction replay protection.
 func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 	var result big.Int
-	err := ec.c.CallContext(ctx, &result, "eth_chainId")
+	err := ec.c.CallContext(ctx, &result, "/chain/ID")
 	if err != nil {
 		return nil, err
 	}

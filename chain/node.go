@@ -8,6 +8,9 @@ type ChordNodeV1 struct {
 }
 
 func newNode() *ChordNodeV1 {
+	if _nodeConfig == nil {
+		panic("please init instance config first")
+	}
 	n := &ChordNodeV1{}
 	n.initRpcApis()
 	return n

@@ -100,3 +100,31 @@ func TestCastP2PKey(t *testing.T) {
 	}
 	t.Logf("22th get:[%x]\n", bts)
 }
+
+func TestPriKeyToHexStr(t *testing.T) {
+	k := NewKey()
+	t.Log(k.PrivateKey.SerializeToHexStr())
+	t.Log(k.PrivateKey.GetHexString())
+}
+
+func TestHexStrToPriKey(t *testing.T) {
+
+	keyStrs := []string{
+		"066c6b1a28955a9089670d1e1386484f7370ef7b4f725876e72d82438de06c9e",
+		"66c6b1a28955a9089670d1e1386484f7370ef7b4f725876e72d82438de06c9e",
+	}
+
+	for _, keyStr := range keyStrs {
+		var key bls.SecretKey
+		if err := key.SetHexString(keyStr); err != nil {
+			t.Fatal(err)
+		}
+		t.Log(key.SerializeToHexStr())
+		t.Log(key.GetHexString())
+		if err := key.DeserializeHexStr(keyStr); err != nil {
+			t.Fatal(err)
+		}
+		t.Log(key.SerializeToHexStr())
+		t.Log(key.GetHexString())
+	}
+}

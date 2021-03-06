@@ -1,9 +1,8 @@
 package types
 
 import (
-	"bytes"
+	"github.com/herumi/bls-eth-go-binary/bls"
 	"github.com/otcChain/chord-go/common"
-	"github.com/otcChain/chord-go/utils"
 	"github.com/otcChain/chord-go/utils/rlp"
 	"math/big"
 	"sync/atomic"
@@ -25,52 +24,43 @@ type Transaction struct {
 	from atomic.Value
 }
 
-func (tx *Transaction) setDecoded(inner TxData, size int) {
-	tx.inner = inner
-	tx.time = time.Now()
-	if size > 0 {
-		tx.size.Store(utils.StorageSize(size))
-	}
-}
-
 // NewTx creates a new transaction.
 func NewTx(inner TxData) *Transaction {
 	tx := new(Transaction)
-	tx.setDecoded(inner.copy(), 0)
+	tx.inner = inner
+	tx.time = time.Now()
+	tx.size.Store(0)
 	return tx
 }
 
-type TxData interface {
-	txType() byte // returns the type ID
-	copy() TxData // creates a deep copy and initializes all fields
+type TxData struct {
+	Nonce   uint64   `json:"nonce"      gencodec:"required"`
+	Price   *big.Int `json:"gasPrice"   gencodec:"required"`
+	Gas     uint64   `json:"gas"        gencodec:"required"`
+	ShardID uint32   `json:"shardID"    gencodec:"required"`
+	//ToShardID    uint32          `json:"toShardID"  gencodec:"required"`
+	To    *common.Address `json:"to"         rlp:"nil"` // nil means contract creation
+	Value *big.Int        `json:"value"      gencodec:"required"`
+	Data  []byte          `json:"input"      gencodec:"required"`
 
-	chainID() *big.Int
-	accessList() AccessList
-	data() []byte
-	gas() uint64
-	gasPrice() *big.Int
-	value() *big.Int
-	nonce() uint64
-	to() *common.Address
-
-	rawSignatureValues() (v, r, s *big.Int)
-	setSignatureValues(chainID, v, r, s *big.Int)
-}
-
-func (tx *Transaction) Type() uint8 {
-	return tx.inner.txType()
-}
-
-func (tx *Transaction) encodeTyped(w *bytes.Buffer) error {
-	w.WriteByte(tx.Type())
-	return rlp.Encode(w, tx.inner)
+	Hash common.Hash `json:"hash" rlp:"-"`
+	Sig  *bls.Sign   `json:"signature"      gencodec:"required"`
 }
 
 func (tx *Transaction) MarshalBinary() ([]byte, error) {
-	if tx.Type() == LegacyTxType {
-		return rlp.EncodeToBytes(tx.inner)
+	return rlp.EncodeToBytes(tx.inner)
+}
+
+func (tx *Transaction) SignTx(prv *bls.SecretKey) error {
+	txBytes, err := tx.MarshalBinary()
+	if err != nil {
+		return err
 	}
-	var buf bytes.Buffer
-	err := tx.encodeTyped(&buf)
-	return buf.Bytes(), err
+	tx.inner.Hash = common.BytesToHash(txBytes)
+	tx.inner.Sig = prv.SignByte(txBytes)
+	return nil
+}
+
+func (tx *Transaction) Hash() common.Hash {
+	return tx.inner.Hash
 }

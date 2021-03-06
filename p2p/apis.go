@@ -13,11 +13,17 @@ type RpcPushTopic struct {
 func (nt *NetworkV1) initRpcApis() {
 	rpc.HttpRpcApis["/p2p/PeerList"] = nt.ApiPeesList
 	rpc.HttpRpcApis["/p2p/PushMsg"] = nt.ApiPushMsg
+	rpc.HttpRpcApis["/p2p/nid"] = nt.HostID
 }
 
+//--->public rpc apis
 func (nt *NetworkV1) ApiPeesList(msg *rpc.JsonRpcMessageItem) (json.RawMessage, *rpc.JsonError) {
 	peerStr := nt.DebugTopicPeers(string(msg.Params))
 	return []byte(peerStr), nil
+}
+
+func (nt *NetworkV1) HostID(msg *rpc.JsonRpcMessageItem) (json.RawMessage, *rpc.JsonError) {
+	return []byte(nt.p2pHost.ID()), nil
 }
 
 func (nt *NetworkV1) ApiPushMsg(msg *rpc.JsonRpcMessageItem) (json.RawMessage, *rpc.JsonError) {
@@ -32,6 +38,7 @@ func (nt *NetworkV1) ApiPushMsg(msg *rpc.JsonRpcMessageItem) (json.RawMessage, *
 	return []byte(res), nil
 }
 
+//---rpc debug
 func (nt *NetworkV1) DebugTopicMsg(topic, msg string) string {
 	if err := nt.msgManager.SendMsg(topic, []byte(msg)); err != nil {
 		return err.Error()
