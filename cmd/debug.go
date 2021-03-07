@@ -91,7 +91,7 @@ func showPeerAction(c *cobra.Command, _ []string) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(rsp.Msg)
+	fmt.Println("peers result:=>", rsp.Msg)
 }
 
 func rpcUsage(c *cobra.Command, _ []string) {

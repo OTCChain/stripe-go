@@ -1,9 +1,11 @@
 package common
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"github.com/btcsuite/btcutil/bech32"
 	"github.com/herumi/bls-eth-go-binary/bls"
+	"reflect"
 )
 
 const (
@@ -14,7 +16,10 @@ const (
 
 type Address [AddressLength]byte
 
-var InvalidAddr Address
+var (
+	InvalidAddr Address
+	AddressT    = reflect.TypeOf(Address{})
+)
 
 func (a *Address) SetBytes(b []byte) {
 	if len(b) > len(a) {
@@ -70,10 +75,54 @@ func (a Address) String() string {
 	return a.Hex()
 }
 
+func (a Address) MarshalText() ([]byte, error) {
+	//result := make([]byte, len(a[:])*2+3)
+	//copy(result, []byte("fed"))
+	//hex.Encode(result[3:], a[:])
+	return []byte(a.Hex()), nil
+}
+
+func (a *Address) UnmarshalBinary(data []byte) error {
+	panic("22")
+}
+
+func (a *Address) UnmarshalText(input []byte) error {
+	panic("2")
+}
+
+func (a *Address) UnmarshalJSON(input []byte) error {
+	fmt.Println(input)
+	fmt.Println(string(input))
+	addr, err := HexToAddress(string(input))
+	if err != nil {
+		return err
+	}
+	a.SetBytes(addr[:])
+	return nil
+}
+
+// Scan implements Scanner for database/sql.
+func (a *Address) Scan(src interface{}) error {
+	panic("4")
+}
+
+// Value implements valuer for database/sql.
+func (a Address) Value() (driver.Value, error) {
+	panic("5")
+}
+
+func (a Address) Format(s fmt.State, c rune) {
+	panic("6")
+}
+
 func BytesToAddress(b []byte) Address {
 	var a Address
 	a.SetBytes(b)
 	return a
+}
+
+func InterfaceToAddress(b string) (Address, error) {
+	return HexToAddress(b)
 }
 
 func PubKeyToAddr(p *bls.PublicKey) Address {

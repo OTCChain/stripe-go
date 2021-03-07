@@ -202,15 +202,14 @@ func mainRun(_ *cobra.Command, _ []string) {
 		panic(err)
 	}
 
-	if err := rpc.Inst().StartService(); err != nil {
-		panic(err)
-	}
-
-	go internal.StartRpc()
-
 	if err := chain.Inst().Setup(); err != nil {
 		panic(err)
 	}
+
+	if err := rpc.Inst().StartService(); err != nil {
+		panic(err)
+	}
+	go internal.StartRpc()
 
 	chain.Inst().Start()
 

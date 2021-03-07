@@ -6,6 +6,7 @@ import (
 	"github.com/otcChain/chord-go/rpc"
 	"github.com/otcChain/chord-go/utils"
 	"math/big"
+	"reflect"
 )
 
 func (cn *ChordNodeV1) initRpcApis() {
@@ -20,17 +21,24 @@ func (cn *ChordNodeV1) AccountNonce(request *rpc.JsonRpcMessageItem) (json.RawMe
 		return nil, &rpc.JsonError{Code: -1, Message: "invalid request parameters"}
 	}
 	if len(args) != 2 {
-		return nil, &rpc.JsonError{
-			Code:    -1,
-			Message: "account nonce query need 2 parameters",
-		}
+		utils.LogInst().Warn().Msgf("account nonce query args [%d](%s)", len(args), string(request.Params))
+		return nil, rpc.JSError("account nonce query need 2 parameters")
 	}
-	addr, ok1 := args[0].(common.Address)
+
+	addr, err := common.InterfaceToAddress(args[0].(string))
+	if err != nil {
+		return nil, rpc.JError(err)
+	}
 	status, ok2 := args[1].(string)
-	if !(ok1 && ok2) {
+	if !ok2 {
+		utils.LogInst().Debug().
+			Bool("cast arg1 ret", ok2).
+			Str("addr type:", reflect.TypeOf(args[0]).String()).Send()
 		return nil, &rpc.JsonError{Code: -1, Message: "cast parameters failed"}
 	}
-	utils.LogInst().Debug().Msgf("account nonce query[%s-%s]", addr, status)
+	utils.LogInst().Debug().Str("account", addr.String()).
+		Str("tx status:", status).
+		Msg("account nonce query")
 	return big.NewInt(1).Bytes(), nil
 }
 

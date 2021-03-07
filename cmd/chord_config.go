@@ -35,6 +35,7 @@ func (c CfgPerNetwork) String() string {
 	s += c.CCfg.String()
 	s += c.UCfg.String()
 	s += c.WCfg.String()
+	s += c.RCfg.String()
 	s += fmt.Sprintf("\n======================================================================>>>")
 	return s
 }

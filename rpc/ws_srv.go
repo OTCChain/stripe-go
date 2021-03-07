@@ -3,7 +3,7 @@ package rpc
 type WsRpc struct {
 }
 
-func (wr *WsRpc) StartRpc() error {
+func (wr *WsRpc) StartRpc() chan error {
 	return nil
 }
 

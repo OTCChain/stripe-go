@@ -3,6 +3,7 @@ package p2p
 import (
 	"encoding/json"
 	"github.com/otcChain/chord-go/rpc"
+	"github.com/otcChain/chord-go/utils"
 )
 
 type RpcPushTopic struct {
@@ -47,6 +48,7 @@ func (nt *NetworkV1) DebugTopicMsg(topic, msg string) string {
 }
 
 func (nt *NetworkV1) DebugTopicPeers(topic string) string {
+	utils.LogInst().Debug().Msgf("p2p cmd rpc query for topic[%s]", topic)
 	peers := nt.msgManager.PeersOfTopic(topic)
 	bts, _ := json.Marshal(peers)
 	return string(bts)

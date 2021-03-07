@@ -61,6 +61,9 @@ func (h *HttpClient) buildMsg(args ...interface{}) (json.RawMessage, error) {
 			return nil, err
 		}
 	}
+
+	fmt.Printf("marshal parameters:=%s\n", string(msg.Params))
+
 	ret := make(JsonRpcMessage, 1)
 	ret[0] = msg
 	body, err := json.Marshal(ret)
@@ -85,10 +88,11 @@ func (h *HttpClient) buildRequest(ctx context.Context, path string, body []byte)
 }
 
 func (h *HttpClient) CallContext(ctx context.Context, result interface{}, path string, args ...interface{}) error {
+	fmt.Println(len(args))
 	if result != nil && reflect.TypeOf(result).Kind() != reflect.Ptr {
 		return fmt.Errorf("call result parameter must be pointer or nil interface: %v", result)
 	}
-	body, err := h.buildMsg(args)
+	body, err := h.buildMsg(args...)
 	if err != nil {
 		return err
 	}
@@ -104,6 +108,6 @@ func (h *HttpClient) CallContext(ctx context.Context, result interface{}, path s
 	defer resp.Body.Close()
 	out, err := ioutil.ReadAll(resp.Body)
 
+	fmt.Println("context call body:=>", string(out))
 	return json.Unmarshal(out, &result)
-
 }
