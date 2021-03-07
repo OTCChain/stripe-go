@@ -113,7 +113,7 @@ func (h *HttpClient) CallContext(ctx context.Context, result interface{}, path s
 	}
 	defer resp.Body.Close()
 	out, err := ioutil.ReadAll(resp.Body)
-
+	fmt.Println(out)
 	fmt.Println("context call body:=>", string(out))
 	return json.Unmarshal(out, &result)
 }
