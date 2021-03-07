@@ -1,0 +1,33 @@
+syntax = "proto3";
+package pbs;
+option go_package = ".;pbs";
+
+enum TxType {
+  Failed = 0;
+  Pending = 1;
+  Success = 2;
+}
+
+message AccountNonce{
+    string account = 1;
+    TxType status = 2;
+}
+
+message RpcMsgItem{
+    string versionID = 1;
+    uint32 ID = 2;
+    bytes parameter = 3;
+}
+
+message RpcRequest{
+  repeated RpcMsgItem  request = 1;
+}
+
+message RpcResponse{
+  int32 code = 1;
+  bytes  data = 2;
+}
+
+message RpcAnswer{
+  repeated  RpcResponse answer = 1;
+}

@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/golang/protobuf/proto"
+	"github.com/otcChain/chord-go/pbs"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -46,32 +48,36 @@ func (h *HttpClient) Close() {
 	return
 }
 
-func (h *HttpClient) Call(result interface{}, url string, args ...interface{}) error {
+func (h *HttpClient) Call(result interface{}, url string, args []byte) error {
 	ctx, cancel := context.WithTimeout(h.rootCtx, DefaultReadTimeout+DefaultWriteTimeout)
 	defer cancel()
-	return h.CallContext(ctx, result, url, args...)
+	return h.CallContext(ctx, result, url, args)
 }
 
-func (h *HttpClient) buildMsg(args ...interface{}) (json.RawMessage, error) {
+func (h *HttpClient) buildMsg(args []byte) (json.RawMessage, error) {
 	id := atomic.AddUint32(&h.idCounter, 1)
-	msg := &JsonRpcMessageItem{Version: vsn, ID: id}
-	if args != nil {
-		var err error
-		if msg.Params, err = json.Marshal(args); err != nil {
-			return nil, err
-		}
+	//msg := &JsonRpcMessageItem{Version: vsn, ID: id, Params: args}
+
+	msg := &pbs.RpcMsgItem{
+		VersionID: vsn,
+		ID:        id,
+		Parameter: args,
 	}
-
-	fmt.Printf("marshal parameters:=%s\n", string(msg.Params))
-
-	ret := make(JsonRpcMessage, 1)
-	ret[0] = msg
-	body, err := json.Marshal(ret)
+	msgs := make([]*pbs.RpcMsgItem, 1)
+	msgs[0] = msg
+	ret := &pbs.RpcRequest{
+		Request: msgs,
+	}
+	body, err := proto.Marshal(ret)
 	if err != nil {
+		fmt.Println("-------->")
+		fmt.Println(err.Error())
+		fmt.Println("-------->")
 		return nil, err
 	}
 	return body, nil
 }
+
 func (h *HttpClient) buildRequest(ctx context.Context, path string, body []byte) (*http.Request, error) {
 
 	req, err := http.NewRequestWithContext(ctx,
@@ -87,12 +93,12 @@ func (h *HttpClient) buildRequest(ctx context.Context, path string, body []byte)
 	return req, nil
 }
 
-func (h *HttpClient) CallContext(ctx context.Context, result interface{}, path string, args ...interface{}) error {
+func (h *HttpClient) CallContext(ctx context.Context, result interface{}, path string, args []byte) error {
 	fmt.Println(len(args))
 	if result != nil && reflect.TypeOf(result).Kind() != reflect.Ptr {
 		return fmt.Errorf("call result parameter must be pointer or nil interface: %v", result)
 	}
-	body, err := h.buildMsg(args...)
+	body, err := h.buildMsg(args)
 	if err != nil {
 		return err
 	}

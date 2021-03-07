@@ -2,13 +2,11 @@ package chordclient
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/herumi/bls-eth-go-binary/bls"
 	"github.com/otcChain/chord-go/chain/types"
 	"github.com/otcChain/chord-go/common"
 	"math/big"
-	"reflect"
 	"testing"
 )
 
@@ -63,46 +61,4 @@ func TestValidAddress(t *testing.T) {
 	}
 
 	fmt.Printf("tx sent: %s", tx.Hash().Hex())
-}
-
-func mashArgs(t *testing.T, args ...interface{}) json.RawMessage {
-	params, err := json.Marshal(args)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return params
-}
-
-func TestRpcParamJson(t *testing.T) {
-
-	toAddress, err := common.HexToAddress("fed1gy3afwa745c88dxsznaw82trul3r2p5vsrhmms")
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Println(toAddress[:])
-	fmt.Println(reflect.TypeOf(toAddress[:]))
-	data := mashArgs(t, toAddress, "pending")
-	fmt.Println(string(data))
-
-	var args []interface{}
-	if err := json.Unmarshal(data, &args); err != nil {
-		t.Fatal(err)
-	}
-
-	fmt.Println(reflect.TypeOf(args[0]))
-	fmt.Println(reflect.TypeOf(args[1]))
-
-	var addr2 common.Address
-	if err := json.Unmarshal([]byte(args[0].(string)), addr2); err != nil {
-		t.Fatal(err)
-	}
-	fmt.Println(addr2)
-
-	addr, err := common.InterfaceToAddress(args[0].(string))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if addr != toAddress {
-		t.Fatalf("param failed:\n%s\n%s", addr, toAddress)
-	}
 }

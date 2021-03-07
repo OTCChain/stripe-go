@@ -2,14 +2,13 @@ package rpc
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"github.com/otcChain/chord-go/common"
+	"github.com/golang/protobuf/proto"
+	"github.com/otcChain/chord-go/pbs"
 	"github.com/otcChain/chord-go/utils"
 	"io"
 	"mime"
 	"net/http"
-	"reflect"
 )
 
 const (
@@ -20,7 +19,7 @@ const (
 // https://www.jsonrpc.org/historical/json-rpc-over-http.html#id13
 var acceptedContentTypes = []string{contentType, "application/json-rpc", "application/jsonrequest"}
 
-type HttpRpcProvider func(*JsonRpcMessageItem) (json.RawMessage, *JsonError)
+type HttpRpcProvider func(*pbs.RpcMsgItem) *pbs.RpcResponse
 type HttpApiRouter map[string]HttpRpcProvider
 
 type HttpRpc struct {
@@ -73,7 +72,7 @@ func validateRequest(r *http.Request) (int, error) {
 	return http.StatusUnsupportedMediaType, err
 }
 
-func (hr *HttpRpc) readRpcMsg(w http.ResponseWriter, r *http.Request) *JsonRpcMessage {
+func (hr *HttpRpc) readRpcMsg(w http.ResponseWriter, r *http.Request) []*pbs.RpcMsgItem {
 	if r.Method == http.MethodGet && r.ContentLength == 0 && r.URL.RawQuery == "" {
 		w.WriteHeader(http.StatusOK)
 		return nil
@@ -85,21 +84,24 @@ func (hr *HttpRpc) readRpcMsg(w http.ResponseWriter, r *http.Request) *JsonRpcMe
 	w.Header().Set("content-type", contentType)
 
 	body := io.LimitReader(r.Body, maxRequestContentLength)
-	dec := json.NewDecoder(body)
-	msg := JsonRpcMessage{}
-	if err := dec.Decode(&msg); err != nil {
-		if err != io.EOF {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return nil
-		}
+	var b bytes.Buffer
+	n, err := b.ReadFrom(body)
+	if err != nil && n != 0 {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return nil
+	}
+	requests := &pbs.RpcRequest{}
+	if err := proto.Unmarshal(b.Bytes(), requests); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return nil
 	}
 
-	if len(msg) == 0 {
+	if len(requests.Request) == 0 {
 		http.Error(w, "no valid rpc request", http.StatusBadRequest)
 		return nil
 	}
 
-	return &msg
+	return requests.Request
 }
 
 func (hr *HttpRpc) processMsg(w http.ResponseWriter, r *http.Request, provider HttpRpcProvider) {
@@ -109,36 +111,27 @@ func (hr *HttpRpc) processMsg(w http.ResponseWriter, r *http.Request, provider H
 		return
 	}
 
-	answers := make(JsonRpcMessage, 0)
-	for _, msg := range *rpcMsg {
-		a := &JsonRpcMessageItem{
-			Version: msg.Version,
-			ID:      msg.ID,
-		}
+	aws := make([]*pbs.RpcResponse, 0)
+	for _, msg := range rpcMsg {
 		utils.LogInst().Debug().Msgf("process one of rpc message:%s", msg.String())
-		var tps = []reflect.Type{
-			common.AddressT,
-			reflect.TypeOf(""),
-		}
-		vas, err := parsePositionalArguments(msg.Params, tps)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(vas)
-		data, e := provider(msg)
-		if e != nil {
-			a.Error = e
-		} else {
-			a.Result = data
-		}
-		answers = append(answers, a)
+		res := provider(msg)
+		aws = append(aws, res)
 	}
-
-	c := json.NewEncoder(w)
-	if err := c.Encode(answers); err != nil {
+	answers := &pbs.RpcAnswer{
+		Answer: aws,
+	}
+	protoData, err := proto.Marshal(answers)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	n, err := w.Write(protoData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	utils.LogInst().Debug().Int("http rpc response", n)
 }
 
 func (hr *HttpRpc) regService(name string, provider HttpRpcProvider) {
@@ -159,55 +152,4 @@ func newHttpRpc() *HttpRpc {
 		apis: http.NewServeMux(),
 	}
 	return hr
-}
-
-// parsePositionalArguments tries to parse the given args to an array of values with the
-// given types. It returns the parsed values or an error when the args could not be
-// parsed. Missing optional arguments are returned as reflect.Zero values.
-func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type) ([]reflect.Value, error) {
-	dec := json.NewDecoder(bytes.NewReader(rawArgs))
-	var args []reflect.Value
-	tok, err := dec.Token()
-	switch {
-	case err == io.EOF || tok == nil && err == nil:
-		// "params" is optional and may be empty. Also allow "params":null even though it's
-		// not in the spec because our own client used to send it.
-	case err != nil:
-		return nil, err
-	case tok == json.Delim('['):
-		// Read argument array.
-		if args, err = parseArgumentArray(dec, types); err != nil {
-			return nil, err
-		}
-	default:
-		return nil, fmt.Errorf("non-array args")
-	}
-	// Set any missing args to nil.
-	for i := len(args); i < len(types); i++ {
-		if types[i].Kind() != reflect.Ptr {
-			return nil, fmt.Errorf("missing value for required argument %d", i)
-		}
-		args = append(args, reflect.Zero(types[i]))
-	}
-	return args, nil
-}
-
-func parseArgumentArray(dec *json.Decoder, types []reflect.Type) ([]reflect.Value, error) {
-	args := make([]reflect.Value, 0, len(types))
-	for i := 0; dec.More(); i++ {
-		if i >= len(types) {
-			return args, fmt.Errorf("too many arguments, want at most %d", len(types))
-		}
-		argval := reflect.New(types[i])
-		if err := dec.Decode(argval.Interface()); err != nil {
-			return args, fmt.Errorf("invalid argument %d: %v", i, err)
-		}
-		if argval.IsNil() && types[i].Kind() != reflect.Ptr {
-			return args, fmt.Errorf("missing value for required argument %d", i)
-		}
-		args = append(args, argval.Elem())
-	}
-	// Read end of args array.
-	_, err := dec.Token()
-	return args, err
 }

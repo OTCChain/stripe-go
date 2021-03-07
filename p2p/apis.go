@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"encoding/json"
+	"github.com/otcChain/chord-go/pbs"
 	"github.com/otcChain/chord-go/rpc"
 	"github.com/otcChain/chord-go/utils"
 )
@@ -18,25 +19,22 @@ func (nt *NetworkV1) initRpcApis() {
 }
 
 //--->public rpc apis
-func (nt *NetworkV1) ApiPeesList(msg *rpc.JsonRpcMessageItem) (json.RawMessage, *rpc.JsonError) {
-	peerStr := nt.DebugTopicPeers(string(msg.Params))
-	return []byte(peerStr), nil
+func (nt *NetworkV1) ApiPeesList(request *pbs.RpcMsgItem) *pbs.RpcResponse {
+	peerStr := nt.DebugTopicPeers(string(request.Parameter))
+	return pbs.RpcOk([]byte(peerStr))
 }
 
-func (nt *NetworkV1) HostID(msg *rpc.JsonRpcMessageItem) (json.RawMessage, *rpc.JsonError) {
-	return []byte(nt.p2pHost.ID()), nil
+func (nt *NetworkV1) HostID(_ *pbs.RpcMsgItem) *pbs.RpcResponse {
+	return pbs.RpcOk([]byte(nt.p2pHost.ID()))
 }
 
-func (nt *NetworkV1) ApiPushMsg(msg *rpc.JsonRpcMessageItem) (json.RawMessage, *rpc.JsonError) {
+func (nt *NetworkV1) ApiPushMsg(request *pbs.RpcMsgItem) *pbs.RpcResponse {
 	param := &RpcPushTopic{}
-	if err := json.Unmarshal(msg.Params, param); err != nil {
-		return nil, &rpc.JsonError{
-			Code:    -1,
-			Message: err.Error(),
-		}
+	if err := json.Unmarshal(request.Parameter, param); err != nil {
+		return pbs.RpcError(err.Error())
 	}
 	res := nt.DebugTopicMsg(param.Topics, param.Message)
-	return []byte(res), nil
+	return pbs.RpcOk([]byte(res))
 }
 
 //---rpc debug

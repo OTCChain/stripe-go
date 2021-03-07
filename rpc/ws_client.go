@@ -21,11 +21,11 @@ type WsClient struct {
 	didClose chan struct{} // closed when client quits
 }
 
-func (c *WsClient) Call(result interface{}, url string, args ...interface{}) error {
+func (c *WsClient) Call(result interface{}, url string, args []byte) error {
 	panic("implement me")
 }
 
-func (c *WsClient) CallContext(ctx context.Context, result interface{}, url string, args ...interface{}) error {
+func (c *WsClient) CallContext(ctx context.Context, result interface{}, url string, args []byte) error {
 	panic("implement me")
 }
 

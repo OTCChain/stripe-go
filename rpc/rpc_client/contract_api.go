@@ -3,7 +3,6 @@ package chordclient
 import (
 	"context"
 	"github.com/otcChain/chord-go/chain/types"
-	"github.com/otcChain/chord-go/utils/hexutil"
 )
 
 // Contract Calling
@@ -66,7 +65,7 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) er
 	if err != nil {
 		return err
 	}
-	return ec.c.CallContext(ctx, nil, "eth_sendRawTransaction", hexutil.Encode(data))
+	return ec.c.CallContext(ctx, nil, "eth_sendRawTransaction", data)
 }
 
 //func toCallArg(msg ethereum.CallMsg) interface{} {

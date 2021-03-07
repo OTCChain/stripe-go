@@ -8,8 +8,8 @@ import (
 
 type Client interface {
 	Close()
-	Call(result interface{}, url string, args ...interface{}) error
-	CallContext(ctx context.Context, result interface{}, path string, args ...interface{}) error
+	Call(result interface{}, url string, args []byte) error
+	CallContext(ctx context.Context, result interface{}, path string, args []byte) error
 }
 
 func DialContext(ctx context.Context, rawUrl string) (Client, error) {

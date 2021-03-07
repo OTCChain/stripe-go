@@ -2,8 +2,10 @@ package chordclient
 
 import (
 	"context"
+	"github.com/golang/protobuf/proto"
 	"github.com/otcChain/chord-go/common"
-	"github.com/otcChain/chord-go/utils/hexutil"
+	"github.com/otcChain/chord-go/pbs"
+	"math/big"
 )
 
 // Pending State
@@ -32,9 +34,18 @@ import (
 // PendingNonceAt returns the account nonce of the given account in the pending state.
 // This is the nonce that should be used for the next transaction.
 func (ec *Client) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
-	var result hexutil.Uint64
-	err := ec.c.CallContext(ctx, &result, "/tx/count", account, "pending")
-	return uint64(result), err
+	var result = big.NewInt(-1)
+	param := &pbs.AccountNonce{
+		Account: account.String(),
+		Status:  pbs.TxType_Pending,
+	}
+	protoData, err := proto.Marshal(param)
+	if err != nil {
+		return 0, err
+	}
+
+	err = ec.c.CallContext(ctx, &result, "/account/nonce", protoData)
+	return result.Uint64(), err
 }
 
 //// PendingTransactionCount returns the total number of transactions in the pending state.
