@@ -10,15 +10,23 @@ import (
 )
 
 type MicroTxData struct {
-	Nonce uint64         `json:"nonce"      gencodec:"required"`
-	From  common.Address `json:"from"      gencodec:"required"`
-	To    common.Address `json:"to"      gencodec:"required"`
-	Value *big.Int       `json:"value"      gencodec:"required"`
-	Gas   uint64         `json:"gas"        gencodec:"required"`
-	Sig   *bls.Sign      `json:"sig" rlp:"-"`
+	Nonce     uint64          `json:"nonce"      gencodec:"required"`
+	From      *common.Address `json:"from"      gencodec:"required"`
+	To        *common.Address `json:"to"      gencodec:"required"`
+	Value     *big.Int        `json:"value"      gencodec:"required"`
+	Gas       uint64          `json:"gas"        gencodec:"required"`
+	Signature *bls.Sign       `json:"sig" rlp:"-"`
 }
 
-func (m MicroTxData) Sign(pri crypto.PrivateKey) error {
+func (m *MicroTxData) Hash() common.Hash {
+	panic("implement me")
+}
+
+func (m *MicroTxData) Sig() crypto.PrivateKey {
+	panic("implement me")
+}
+
+func (m *MicroTxData) SignTx(pri crypto.PrivateKey) error {
 	prv, ok := pri.(*bls.SecretKey)
 	if !ok {
 		return fmt.Errorf("invalid micro transaction private key for singer")
@@ -27,6 +35,6 @@ func (m MicroTxData) Sign(pri crypto.PrivateKey) error {
 	if err != nil {
 		return err
 	}
-	m.Sig = prv.SignByte(bts)
+	m.Signature = prv.SignByte(bts)
 	return nil
 }

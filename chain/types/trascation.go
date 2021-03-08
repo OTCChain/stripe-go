@@ -10,7 +10,7 @@ import (
 type TxData interface {
 	Hash() common.Hash
 	Sig() crypto.PrivateKey
-	Sign(crypto.PrivateKey) error
+	SignTx(crypto.PrivateKey) error
 }
 
 type Transaction struct {
@@ -31,7 +31,7 @@ func (tx *Transaction) MarshalBinary() ([]byte, error) {
 }
 
 func (tx *Transaction) SignTx(pri crypto.PrivateKey) error {
-	return tx.inner.Sign(pri)
+	return tx.inner.SignTx(pri)
 }
 
 func (tx *Transaction) Hash() common.Hash {

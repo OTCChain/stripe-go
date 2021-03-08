@@ -34,20 +34,17 @@ func TestValidAddress(t *testing.T) {
 	gasLimit := uint64(21000)                // in units
 
 	toAddress, err := common.HexToAddress("fed1gy3afwa745c88dxsznaw82trul3r2p5vsrhmms")
-	var data []byte
 	//TODO:: make sure the usage of chainID
 	//chainID, err := client.NetworkID(context.Background())
 	//if err != nil {
 	//	log.Fatal(err)
 	//}
 
-	ltx := types.TxData{
+	ltx := &types.MicroTxData{
 		Nonce: nonce,
 		To:    &toAddress,
 		Value: value,
 		Gas:   gasLimit,
-		Data:  data,
-		Price: nil,
 	}
 	tx := types.NewTx(ltx)
 
