@@ -29,7 +29,7 @@ func TestValidAddress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	fmt.Println("=====>account nonce is ", nonce)
 	value := big.NewInt(1000000000000000000) // in wei (1 eth)
 	gasLimit := uint64(21000)                // in units
 

@@ -2,6 +2,11 @@ syntax = "proto3";
 package pbs;
 option go_package = ".;pbs";
 
+enum ApiRet{
+  Error = 0;
+  OK = 1;
+}
+
 enum TxType {
   Failed = 0;
   Pending = 1;

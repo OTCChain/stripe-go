@@ -65,7 +65,11 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) er
 	if err != nil {
 		return err
 	}
-	return ec.c.CallContext(ctx, nil, "eth_sendRawTransaction", data)
+	_, err = ec.c.CallContext(ctx, "eth_sendRawTransaction", data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //func toCallArg(msg ethereum.CallMsg) interface{} {

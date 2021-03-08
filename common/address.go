@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/btcsuite/btcutil/bech32"
 	"github.com/herumi/bls-eth-go-binary/bls"
-	"reflect"
 )
 
 const (
@@ -17,7 +16,6 @@ type Address [AddressLength]byte
 
 var (
 	InvalidAddr Address
-	AddressT    = reflect.TypeOf(Address{})
 )
 
 func (a *Address) SetBytes(b []byte) {

@@ -28,7 +28,7 @@ func (cn *ChordNodeV1) AccountNonce(request *pbs.RpcMsgItem) *pbs.RpcResponse {
 	utils.LogInst().Debug().Str("account", args.Account).
 		Str("tx status:", args.Status.String()).
 		Msg("account nonce query")
-	return pbs.RpcOk(big.NewInt(1).Bytes())
+	return pbs.RpcOk(big.NewInt(12345679890).Bytes())
 }
 
 func (cn *ChordNodeV1) ChainHeight(_ *pbs.RpcMsgItem) *pbs.RpcResponse {

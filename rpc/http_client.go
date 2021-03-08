@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"reflect"
 	"sync/atomic"
 )
 
@@ -48,10 +47,10 @@ func (h *HttpClient) Close() {
 	return
 }
 
-func (h *HttpClient) Call(result interface{}, url string, args []byte) error {
+func (h *HttpClient) Call(url string, args []byte) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(h.rootCtx, DefaultReadTimeout+DefaultWriteTimeout)
 	defer cancel()
-	return h.CallContext(ctx, result, url, args)
+	return h.CallContext(ctx, url, args)
 }
 
 func (h *HttpClient) buildMsg(args []byte) (json.RawMessage, error) {
@@ -93,27 +92,35 @@ func (h *HttpClient) buildRequest(ctx context.Context, path string, body []byte)
 	return req, nil
 }
 
-func (h *HttpClient) CallContext(ctx context.Context, result interface{}, path string, args []byte) error {
-	fmt.Println(len(args))
-	if result != nil && reflect.TypeOf(result).Kind() != reflect.Ptr {
-		return fmt.Errorf("call result parameter must be pointer or nil interface: %v", result)
-	}
+func (h *HttpClient) CallContext(ctx context.Context, path string, args []byte) ([]byte, error) {
+
 	body, err := h.buildMsg(args)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req, err := h.buildRequest(ctx, path, body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := h.client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	out, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(out)
-	fmt.Println("context call body:=>", string(out))
-	return json.Unmarshal(out, &result)
+
+	aws := &pbs.RpcAnswer{}
+	if err := proto.Unmarshal(out, aws); err != nil {
+		return nil, err
+	}
+
+	fmt.Println("context call body:=>", aws.String())
+
+	code := aws.Answer[0].Code
+	data := aws.Answer[0].Data
+	if code == int32(pbs.ApiRet_Error) {
+		return nil, fmt.Errorf(string(data))
+	}
+	return data, nil
 }

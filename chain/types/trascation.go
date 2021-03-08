@@ -9,11 +9,6 @@ import (
 	"time"
 )
 
-const (
-	LegacyTxType = iota
-	AccessListTxType
-)
-
 type Transaction struct {
 	inner TxData    // Consensus contents of a transaction
 	time  time.Time // Time first seen locally (spam avoidance)

@@ -33,8 +33,9 @@ import (
 //
 // PendingNonceAt returns the account nonce of the given account in the pending state.
 // This is the nonce that should be used for the next transaction.
+
 func (ec *Client) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
-	var result = big.NewInt(-1)
+	var result big.Int
 	param := &pbs.AccountNonce{
 		Account: account.String(),
 		Status:  pbs.TxType_Pending,
@@ -43,9 +44,12 @@ func (ec *Client) PendingNonceAt(ctx context.Context, account common.Address) (u
 	if err != nil {
 		return 0, err
 	}
-
-	err = ec.c.CallContext(ctx, &result, "/account/nonce", protoData)
-	return result.Uint64(), err
+	byts, err := ec.c.CallContext(ctx, "/account/nonce", protoData)
+	if err != nil {
+		return 0, err
+	}
+	result.SetBytes(byts)
+	return result.Uint64(), nil
 }
 
 //// PendingTransactionCount returns the total number of transactions in the pending state.

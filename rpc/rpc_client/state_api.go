@@ -2,7 +2,6 @@ package chordclient
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 )
 
@@ -10,13 +9,11 @@ import (
 // NetworkID returns the network ID (also known as the chain ID) for this chain.
 func (ec *Client) NetworkID(ctx context.Context) (*big.Int, error) {
 	version := new(big.Int)
-	var ver string
-	if err := ec.c.CallContext(ctx, &ver, "/p2p/nid", nil); err != nil {
+	data, err := ec.c.CallContext(ctx, "/p2p/nid", nil)
+	if err != nil {
 		return nil, err
 	}
-	if _, ok := version.SetString(ver, 10); !ok {
-		return nil, fmt.Errorf("invalid net_version result %q", ver)
-	}
+	version.SetBytes(data)
 	return version, nil
 }
 
