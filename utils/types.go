@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/otcChain/chord-go/utils/hexutil"
 	"golang.org/x/crypto/sha3"
 	"math/big"
 	"math/rand"
@@ -70,7 +69,7 @@ func (h Hash) Bytes() []byte { return h[:] }
 func (h Hash) Big() *big.Int { return new(big.Int).SetBytes(h[:]) }
 
 // Hex converts a hash to a hex string.
-func (h Hash) Hex() string { return hexutil.Encode(h[:]) }
+//func (h Hash) Hex() string { return hexutil.Encode(h[:]) }
 
 // TerminalString implements log.TerminalStringer, formatting a string for console
 // output during logging.
@@ -80,9 +79,9 @@ func (h Hash) TerminalString() string {
 
 // String implements the stringer interface and is used also by the logger when
 // doing full logging into a file.
-func (h Hash) String() string {
-	return h.Hex()
-}
+//func (h Hash) String() string {
+//	return h.Hex()
+//}
 
 // Format implements fmt.Formatter.
 // Hash supports the %v, %s, %v, %x, %X and %d format verbs.
@@ -112,21 +111,6 @@ func (h Hash) Format(s fmt.State, c rune) {
 	default:
 		fmt.Fprintf(s, "%%!%c(hash=%x)", c, h)
 	}
-}
-
-// UnmarshalText parses a hash in hex syntax.
-func (h *Hash) UnmarshalText(input []byte) error {
-	return hexutil.UnmarshalFixedText("Hash", input, h[:])
-}
-
-// UnmarshalJSON parses a hash in hex syntax.
-func (h *Hash) UnmarshalJSON(input []byte) error {
-	return hexutil.UnmarshalFixedJSON(hashT, input, h[:])
-}
-
-// MarshalText returns the hex representation of h.
-func (h Hash) MarshalText() ([]byte, error) {
-	return hexutil.Bytes(h[:]).MarshalText()
 }
 
 // SetBytes sets the hash to the value of b.
@@ -169,25 +153,8 @@ func (h Hash) Value() (driver.Value, error) {
 // ImplementsGraphQLType returns true if Hash implements the specified GraphQL type.
 func (Hash) ImplementsGraphQLType(name string) bool { return name == "Bytes32" }
 
-// UnmarshalGraphQL unmarshals the provided GraphQL query data.
-func (h *Hash) UnmarshalGraphQL(input interface{}) error {
-	var err error
-	switch input := input.(type) {
-	case string:
-		err = h.UnmarshalText([]byte(input))
-	default:
-		err = fmt.Errorf("unexpected type %T for Hash", input)
-	}
-	return err
-}
-
 // UnprefixedHash allows marshaling a Hash without 0x prefix.
 type UnprefixedHash Hash
-
-// UnmarshalText decodes the hash from hex. The 0x prefix is optional.
-func (h *UnprefixedHash) UnmarshalText(input []byte) error {
-	return hexutil.UnmarshalFixedUnprefixedText("UnprefixedHash", input, h[:])
-}
 
 // MarshalText encodes the hash as hex.
 func (h UnprefixedHash) MarshalText() ([]byte, error) {
@@ -305,21 +272,6 @@ func (a *Address) SetBytes(b []byte) {
 	copy(a[AddressLength-len(b):], b)
 }
 
-// MarshalText returns the hex representation of a.
-func (a Address) MarshalText() ([]byte, error) {
-	return hexutil.Bytes(a[:]).MarshalText()
-}
-
-// UnmarshalText parses a hash in hex syntax.
-func (a *Address) UnmarshalText(input []byte) error {
-	return hexutil.UnmarshalFixedText("Address", input, a[:])
-}
-
-// UnmarshalJSON parses a hash in hex syntax.
-func (a *Address) UnmarshalJSON(input []byte) error {
-	return hexutil.UnmarshalFixedJSON(addressT, input, a[:])
-}
-
 // Scan implements Scanner for database/sql.
 func (a *Address) Scan(src interface{}) error {
 	srcB, ok := src.([]byte)
@@ -341,25 +293,8 @@ func (a Address) Value() (driver.Value, error) {
 // ImplementsGraphQLType returns true if Hash implements the specified GraphQL type.
 func (a Address) ImplementsGraphQLType(name string) bool { return name == "Address" }
 
-// UnmarshalGraphQL unmarshals the provided GraphQL query data.
-func (a *Address) UnmarshalGraphQL(input interface{}) error {
-	var err error
-	switch input := input.(type) {
-	case string:
-		err = a.UnmarshalText([]byte(input))
-	default:
-		err = fmt.Errorf("unexpected type %T for Address", input)
-	}
-	return err
-}
-
 // UnprefixedAddress allows marshaling an Address without 0x prefix.
 type UnprefixedAddress Address
-
-// UnmarshalText decodes the address from hex. The 0x prefix is optional.
-func (a *UnprefixedAddress) UnmarshalText(input []byte) error {
-	return hexutil.UnmarshalFixedUnprefixedText("UnprefixedAddress", input, a[:])
-}
 
 // MarshalText encodes the address as hex.
 func (a UnprefixedAddress) MarshalText() ([]byte, error) {
@@ -385,14 +320,6 @@ func NewMixedcaseAddressFromString(hexaddr string) (*MixedcaseAddress, error) {
 	}
 	a := FromHex(hexaddr)
 	return &MixedcaseAddress{addr: BytesToAddress(a), original: hexaddr}, nil
-}
-
-// UnmarshalJSON parses MixedcaseAddress
-func (ma *MixedcaseAddress) UnmarshalJSON(input []byte) error {
-	if err := hexutil.UnmarshalFixedJSON(addressT, input, ma.addr[:]); err != nil {
-		return err
-	}
-	return json.Unmarshal(input, &ma.original)
 }
 
 // MarshalJSON marshals the original value
