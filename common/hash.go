@@ -2,6 +2,7 @@ package common
 
 import (
 	"database/sql/driver"
+	"encoding/hex"
 	"github.com/otcChain/chord-go/utils"
 	"math/big"
 	"reflect"
@@ -41,7 +42,7 @@ func (h Hash) Value() (driver.Value, error) {
 	return h[:], nil
 }
 
-//func (h Hash) String() string {
-//	return h.Hex()
-//}
-//func (h Hash) Hex() string { return hexutil.Encode(h[:]) }
+func (h Hash) String() string {
+	return h.Hex()
+}
+func (h Hash) Hex() string { return hex.EncodeToString(h[:]) }
