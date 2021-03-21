@@ -1,17 +1,16 @@
-package chain
+package chord
 
 import "sync"
 
-type ChordNode interface {
-	Setup() error
-	Start()
+type Node interface {
+	Start() error
 	ShutDown()
 }
 
-var _instance ChordNode
+var _instance Node
 var once sync.Once
 
-func Inst() ChordNode {
+func Inst() Node {
 	once.Do(func() {
 		_instance = newNode()
 	})

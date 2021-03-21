@@ -10,6 +10,7 @@ import (
 	"github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-pubsub"
 	"github.com/otcChain/chord-go/utils"
+	"github.com/otcChain/chord-go/utils/thread"
 	"sync"
 	"time"
 )
@@ -91,7 +92,9 @@ func (s *PubSub) start() error {
 		if err != nil {
 			return err
 		}
-		go s.readingMessage(id, sub)
+		thread.NewThreadWithName(id.String(), func(stop chan struct{}) {
+			s.readingMessage(stop, id, sub)
+		}).Run()
 	}
 	return nil
 }
@@ -112,18 +115,24 @@ func (s *PubSub) removeTopic(id MessageChannel) {
 	utils.LogInst().Warn().Msgf("remove topic [%s] from system", id)
 }
 
-func (s *PubSub) readingMessage(id MessageChannel, sub *pubsub.Subscription) {
+func (s *PubSub) readingMessage(stop chan struct{}, id MessageChannel, sub *pubsub.Subscription) {
 
-	utils.LogInst().Info().Msgf("[pubSub] start reading [%s] message:", id)
+	utils.LogInst().Info().Msgf("[pubSub] start reading message for topic[%s]", id)
 	defer s.removeTopic(id)
-
 	for {
 		msg, err := sub.Next(s.ctx)
 		if err != nil {
 			utils.LogInst().Warn().Err(err)
 			return
 		}
-		utils.LogInst().Debug().Msg(msg.String())
+
+		select {
+		case <-stop:
+			utils.LogInst().Warn().Msg("topic reading thread exit by outer controller")
+			return
+		default:
+			utils.LogInst().Debug().Msg(msg.String())
+		}
 	}
 }
 

@@ -6,7 +6,7 @@ import (
 )
 
 // State Access
-// NetworkID returns the network ID (also known as the chain ID) for this chain.
+// NetworkID returns the network ID (also known as the chord ID) for this chord.
 func (ec *Client) NetworkID(ctx context.Context) (*big.Int, error) {
 	version := new(big.Int)
 	data, err := ec.c.CallContext(ctx, "/p2p/nid", nil)

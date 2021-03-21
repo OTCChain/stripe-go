@@ -2,7 +2,7 @@ package chordclient
 
 import (
 	"context"
-	"github.com/otcChain/chord-go/chain/types"
+	"github.com/otcChain/chord-go/chord/types"
 )
 
 // Contract Calling
@@ -65,7 +65,7 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) er
 	if err != nil {
 		return err
 	}
-	_, err = ec.c.CallContext(ctx, "eth_sendRawTransaction", data)
+	_, err = ec.c.CallContext(ctx, "/chord/rawTransaction", data)
 	if err != nil {
 		return err
 	}

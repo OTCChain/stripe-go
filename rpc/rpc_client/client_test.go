@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/herumi/bls-eth-go-binary/bls"
-	"github.com/otcChain/chord-go/chain/types"
+	"github.com/otcChain/chord-go/chord/types"
 	"github.com/otcChain/chord-go/common"
 	"math/big"
 	"testing"
@@ -31,20 +31,21 @@ func TestValidAddress(t *testing.T) {
 	}
 	fmt.Println("=====>account nonce is ", nonce)
 	value := big.NewInt(1000000000000000000) // in wei (1 eth)
-	gasLimit := uint64(21000)                // in units
 
 	toAddress, err := common.HexToAddress("fed1gy3afwa745c88dxsznaw82trul3r2p5vsrhmms")
 	//TODO:: make sure the usage of chainID
-	//chainID, err := client.NetworkID(context.Background())
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
+	chainID, err := client.NetworkID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	ltx := &types.MicroTxData{
-		Nonce: nonce,
-		To:    &toAddress,
-		Value: value,
-		Gas:   gasLimit,
+	ltx := &types.MicroTx{
+		MicroTxData: &types.MicroTxData{
+			Nonce:   nonce,
+			To:      &toAddress,
+			Value:   value,
+			ChainID: chainID,
+		},
 	}
 	tx := types.NewTx(ltx)
 

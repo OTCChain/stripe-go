@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-type Server interface {
-	StartService() error
-}
-
 type ServiceManager struct {
 	httpErrChan chan error
 	httpRpc     *HttpRpc
@@ -24,19 +20,19 @@ type HTTPTimeouts struct {
 }
 
 var (
-	_instance   Server
+	_instance   *ServiceManager
 	once        sync.Once
 	HttpRpcApis = make(HttpApiRouter)
 )
 
-func Inst() Server {
+func Inst() *ServiceManager {
 	once.Do(func() {
 		_instance = newServiceManager()
 	})
 	return _instance
 }
 
-func newServiceManager() Server {
+func newServiceManager() *ServiceManager {
 
 	if _rpcConfig == nil {
 		panic("init rpc config first")

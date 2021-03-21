@@ -7,10 +7,10 @@ import (
 
 // Blockchain Access
 
-//ChainId retrieves the current chain ID for transaction replay protection.
+//ChainId retrieves the current chord ID for transaction replay protection.
 func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 	var result big.Int
-	data, err := ec.c.CallContext(ctx, "/chain/ID", nil)
+	data, err := ec.c.CallContext(ctx, "/chord/ID", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 //	return ec.getBlock(ctx, "eth_getBlockByHash", hash, true)
 //}
 //
-//// BlockByNumber returns a block from the current canonical chain. If number is nil, the
+//// BlockByNumber returns a block from the current canonical chord. If number is nil, the
 //// latest known block is returned.
 ////
 //// Note that loading full blocks requires two requests. Use HeaderByNumber
@@ -124,7 +124,7 @@ func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 //	return head, err
 //}
 //
-//// HeaderByNumber returns a block header from the current canonical chain. If number is
+//// HeaderByNumber returns a block header from the current canonical chord. If number is
 //// nil, the latest known header is returned.
 //func (ec *Client) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
 //	var head *types.Header

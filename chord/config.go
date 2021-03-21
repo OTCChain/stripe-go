@@ -1,4 +1,4 @@
-package chain
+package chord
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ type Config struct {
 
 func (c Config) String() string {
 	s := fmt.Sprintf("\n<-------------Node Config-----------")
-	s += fmt.Sprintf("\n*chain id:			%s", c.ChainID.String())
+	s += fmt.Sprintf("\n*chord id:			%s", c.ChainID.String())
 	s += fmt.Sprintf("\n----------------------------------->\n")
 	return s
 }

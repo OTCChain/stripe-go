@@ -12,7 +12,10 @@ import (
 
 type cmdService struct{}
 
-const DefaultCmdPort = 8848
+const (
+	DefaultCmdPort = 8848
+	ThreadName     = "Internal Rpc Cmd Thread"
+)
 
 var (
 	_instance = &cmdService{}
@@ -42,7 +45,7 @@ func (c *cmdService) P2PSendTopicMsg(_ context.Context, msg *pbs.TopicMsg) (*pbs
 	}, nil
 }
 
-func StartRpc() {
+func StartCmdRpc(_ chan struct{}) {
 	var address = fmt.Sprintf("127.0.0.1:%d", DefaultCmdPort)
 	l, err := net.Listen("tcp", address)
 	if err != nil {

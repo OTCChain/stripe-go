@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
-	"github.com/otcChain/chord-go/chain"
+	"github.com/otcChain/chord-go/chord"
 	"github.com/otcChain/chord-go/consensus"
 	"github.com/otcChain/chord-go/p2p"
 	"github.com/otcChain/chord-go/rpc"
@@ -62,7 +62,7 @@ func initDefault(baseDir string) error {
 		Name: MainNet,
 		PCfg: p2p.DefaultConfig(true, baseDir),
 		CCfg: consensus.DefaultConfig(true, baseDir),
-		NCfg: chain.DefaultConfig(true, baseDir),
+		NCfg: chord.DefaultConfig(true, baseDir),
 		UCfg: &utils.Config{
 			LogLevel: zerolog.ErrorLevel,
 		},
@@ -75,7 +75,7 @@ func initDefault(baseDir string) error {
 		Name: TestNet,
 		PCfg: p2p.DefaultConfig(false, baseDir),
 		CCfg: consensus.DefaultConfig(false, baseDir),
-		NCfg: chain.DefaultConfig(false, baseDir),
+		NCfg: chord.DefaultConfig(false, baseDir),
 		UCfg: &utils.Config{
 			LogLevel: zerolog.DebugLevel,
 		},

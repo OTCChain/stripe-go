@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/otcChain/chord-go/chain"
+	"github.com/otcChain/chord-go/chord"
 	"github.com/otcChain/chord-go/cmd"
 	"github.com/otcChain/chord-go/consensus"
 	"github.com/otcChain/chord-go/internal"
@@ -11,6 +11,7 @@ import (
 	"github.com/otcChain/chord-go/rpc"
 	"github.com/otcChain/chord-go/utils"
 	"github.com/otcChain/chord-go/utils/fdlimit"
+	"github.com/otcChain/chord-go/utils/thread"
 	"github.com/otcChain/chord-go/wallet"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
@@ -120,7 +121,7 @@ func initChordConfig() (err error) {
 	fmt.Println(result.String())
 
 	wallet.InitConfig(result.WCfg)
-	chain.InitConfig(result.NCfg)
+	chord.InitConfig(result.NCfg)
 	p2p.InitConfig(result.PCfg)
 	consensus.InitConfig(result.CCfg)
 	utils.InitConfig(result.UCfg)
@@ -202,16 +203,11 @@ func mainRun(_ *cobra.Command, _ []string) {
 		panic(err)
 	}
 
-	if err := chain.Inst().Setup(); err != nil {
+	thread.NewThreadWithName(internal.ThreadName, internal.StartCmdRpc).Run()
+
+	if err := chord.Inst().Start(); err != nil {
 		panic(err)
 	}
-
-	if err := rpc.Inst().StartService(); err != nil {
-		panic(err)
-	}
-	go internal.StartRpc()
-
-	chain.Inst().Start()
 
 	waitShutdownSignal()
 }
@@ -232,6 +228,6 @@ func waitShutdownSignal() {
 		syscall.SIGQUIT)
 
 	sig := <-sigCh
-	chain.Inst().ShutDown()
+	chord.Inst().ShutDown()
 	fmt.Printf("\n>>>>>>>>>>process finished(%s)<<<<<<<<<<\n", sig)
 }

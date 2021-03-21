@@ -2,7 +2,7 @@ package chordclient
 
 import (
 	"encoding/json"
-	"github.com/otcChain/chord-go/chain/types"
+	"github.com/otcChain/chord-go/chord/types"
 	"github.com/otcChain/chord-go/common"
 )
 
