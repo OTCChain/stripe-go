@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/btcsuite/btcutil/bech32"
 	"github.com/herumi/bls-eth-go-binary/bls"
+	"github.com/otcChain/chord-go/utils"
 )
 
 const (
@@ -80,5 +81,5 @@ func BytesToAddress(b []byte) Address {
 
 func PubKeyToAddr(p *bls.PublicKey) Address {
 	pubBytes := p.Serialize()
-	return BytesToAddress(Keccak256(pubBytes[1:])[12:])
+	return BytesToAddress(utils.Keccak256(pubBytes[1:])[12:])
 }

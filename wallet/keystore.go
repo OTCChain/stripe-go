@@ -199,7 +199,7 @@ func EncryptData(data, auth []byte, scryptN, scryptP int) (CryptoJSON, error) {
 	if err != nil {
 		return CryptoJSON{}, err
 	}
-	mac := common.Keccak256(derivedKey[16:32], cipherText)
+	mac := utils.Keccak256(derivedKey[16:32], cipherText)
 
 	scryptParamsJSON := make(map[string]interface{}, 5)
 	scryptParamsJSON["n"] = scryptN
@@ -272,7 +272,7 @@ func DecryptData(cj CryptoJSON, auth string) ([]byte, error) {
 		return nil, err
 	}
 
-	calculatedMAC := common.Keccak256(derivedKey[16:32], cipherText)
+	calculatedMAC := utils.Keccak256(derivedKey[16:32], cipherText)
 	if !bytes.Equal(calculatedMAC, mac) {
 		return nil, ErrDecrypt
 	}
