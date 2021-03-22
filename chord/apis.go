@@ -10,7 +10,8 @@ import (
 
 func (cn *NodeV1) initRpcApis() {
 	rpc.HttpRpcApis["/account/nonce"] = cn.AccountNonce
-	rpc.HttpRpcApis["/tx/newMicroTx"] = cn.NewMicroTx
+	rpc.HttpRpcApis["/tx/microTx"] = cn.NewMicroTx
+	rpc.HttpRpcApis["/tx/valTx"] = cn.NewValTx
 	rpc.HttpRpcApis["/chord/ID"] = cn.ChainID
 	rpc.HttpRpcApis["/chord/Height"] = cn.ChainHeight
 }
@@ -31,12 +32,16 @@ func (cn *NodeV1) AccountNonce(request *pbs.RpcMsgItem) *pbs.RpcResponse {
 		return pbs.RpcError("invalid request parameters")
 	}
 	utils.LogInst().Debug().Str("account", args.Account).
-		Str("tx status:", args.Status.String()).
+		Str("transaction status:", args.Status.String()).
 		Msg("account nonce query")
 	return pbs.RpcOk(big.NewInt(12345679890).Bytes())
 }
 
 //---------------------------TX API-------------------------
 func (cn *NodeV1) NewMicroTx(_ *pbs.RpcMsgItem) *pbs.RpcResponse {
+	return pbs.RpcOk(nil)
+}
+
+func (cn *NodeV1) NewValTx(_ *pbs.RpcMsgItem) *pbs.RpcResponse {
 	return pbs.RpcOk(nil)
 }

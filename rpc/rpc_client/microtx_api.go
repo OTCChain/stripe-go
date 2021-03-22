@@ -2,15 +2,16 @@ package chordclient
 
 import (
 	"context"
-	"github.com/otcChain/chord-go/chord/types"
+	"github.com/otcChain/chord-go/chord/transaction"
+	"github.com/otcChain/chord-go/utils/rlp"
 )
 
-func (ec *Client) SendMicroTx(ctx context.Context, tx *types.Transaction) error {
-	data, err := tx.MarshalBinary()
+func (ec *Client) SendMicroTx(ctx context.Context, tx transaction.Transaction) error {
+	data, err := rlp.EncodeToBytes(tx)
 	if err != nil {
 		return err
 	}
-	_, err = ec.c.CallContext(ctx, "/tx/newMicroTx", data)
+	_, err = ec.c.CallContext(ctx, "/transaction/newMicroTx", data)
 	if err != nil {
 		return err
 	}

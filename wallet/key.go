@@ -19,8 +19,8 @@ type FedKey bls.SecretKey
 //SignDataWithPassphrase(key Key, passphrase, mimeType string, data []byte) ([]byte, error)
 //SignText(key Key, text []byte) ([]byte, error)
 //SignTextWithPassphrase(account Key, passphrase string, hash []byte) ([]byte, error)
-//SignTx(key Key, tx *common.Transaction, chainID *big.Int) (*common.Transaction, error)
-//SignTxWithPassphrase(account Key, passphrase string, tx *common.Transaction, chainID *big.Int) (*common.Transaction, error)
+//SignTx(key Key, transaction *common.Transaction, chainID *big.Int) (*common.Transaction, error)
+//SignTxWithPassphrase(account Key, passphrase string, transaction *common.Transaction, chainID *big.Int) (*common.Transaction, error)
 
 type Key struct {
 	ID         uuid.UUID

@@ -1,10 +1,5 @@
 package chordclient
 
-import (
-	"context"
-	"github.com/otcChain/chord-go/chord/types"
-)
-
 // Contract Calling
 
 // CallContract executes a message call transaction, which is directly executed in the VM
@@ -56,21 +51,6 @@ import (
 //	return uint64(hex), nil
 //}
 //
-// SendTransaction injects a signed transaction into the pending pool for execution.
-//
-// If the transaction was a contract creation use the TransactionReceipt method to get the
-// contract address after the transaction has been mined.
-func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) error {
-	data, err := tx.MarshalBinary()
-	if err != nil {
-		return err
-	}
-	_, err = ec.c.CallContext(ctx, "/chord/rawTransaction", data)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 //func toCallArg(msg ethereum.CallMsg) interface{} {
 //	arg := map[string]interface{}{

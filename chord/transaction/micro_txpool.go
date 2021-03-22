@@ -1,4 +1,4 @@
-package txpool
+package transaction
 
 type MicTxPool struct {
 }

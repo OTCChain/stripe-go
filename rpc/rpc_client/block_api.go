@@ -105,11 +105,11 @@ func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 //	}
 //	// Fill the sender cache of transactions in the block.
 //	txs := make([]*types.Transaction, len(body.Transactions))
-//	for i, tx := range body.Transactions {
-//		if tx.From != nil {
-//			setSenderFromServer(tx.tx, *tx.From, body.Hash)
+//	for i, transaction := range body.Transactions {
+//		if transaction.From != nil {
+//			setSenderFromServer(transaction.transaction, *transaction.From, body.Hash)
 //		}
-//		txs[i] = tx.tx
+//		txs[i] = transaction.transaction
 //	}
 //	return types.NewBlockWithHeader(head).WithBody(txs, uncles), nil
 //}

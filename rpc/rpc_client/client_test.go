@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/herumi/bls-eth-go-binary/bls"
-	"github.com/otcChain/chord-go/chord/types"
+	"github.com/otcChain/chord-go/chord/transaction"
 	"github.com/otcChain/chord-go/common"
 	"math/big"
 	"testing"
@@ -31,23 +31,15 @@ func TestValidAddress(t *testing.T) {
 	}
 	fmt.Println("=====>account nonce is ", nonce)
 	value := big.NewInt(1000000000000000000) // in wei (1 eth)
-
+	price := big.NewInt(1000000000000000000) // in wei (1 eth)
+	gas := 456
 	toAddress, err := common.HexToAddress("fed1gy3afwa745c88dxsznaw82trul3r2p5vsrhmms")
-	//TODO:: make sure the usage of chainID
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ltx := &types.MicroTx{
-		MicroTxData: &types.MicroTxData{
-			Nonce:   nonce,
-			To:      &toAddress,
-			Value:   value,
-			ChainID: chainID,
-		},
-	}
-	tx := types.NewTx(ltx)
+	tx := transaction.NewValTx(nonce, &toAddress, value, price, chainID, uint64(gas), nil)
 
 	if err := tx.SignTx(&privateKey); err != nil {
 		t.Fatal(err)
@@ -58,5 +50,5 @@ func TestValidAddress(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("tx sent: %s", tx.Hash().Hex())
+	fmt.Printf("transaction sent: %s", tx.Hash().Hex())
 }

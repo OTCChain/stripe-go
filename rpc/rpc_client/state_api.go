@@ -7,14 +7,14 @@ import (
 
 // State Access
 // NetworkID returns the network ID (also known as the chord ID) for this chord.
-func (ec *Client) NetworkID(ctx context.Context) (*big.Int, error) {
+func (ec *Client) NetworkID(ctx context.Context) (uint32, error) {
 	version := new(big.Int)
 	data, err := ec.c.CallContext(ctx, "/p2p/nid", nil)
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 	version.SetBytes(data)
-	return version, nil
+	return uint32(version.Int64()), nil
 }
 
 //
