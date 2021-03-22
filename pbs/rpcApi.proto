@@ -1,6 +1,6 @@
 syntax = "proto3";
 package pbs;
-option go_package = ".;pbs";
+option go_package = "./rpc";
 
 enum ApiRet{
   Error = 0;

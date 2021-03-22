@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"github.com/otcChain/chord-go/pbs"
+	pbs "github.com/otcChain/chord-go/pbs/rpc"
 	"github.com/otcChain/chord-go/utils"
 	"io"
 	"mime"

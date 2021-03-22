@@ -2,7 +2,7 @@ package chord
 
 import (
 	"github.com/golang/protobuf/proto"
-	"github.com/otcChain/chord-go/pbs"
+	pbs "github.com/otcChain/chord-go/pbs/rpc"
 	"github.com/otcChain/chord-go/rpc"
 	"github.com/otcChain/chord-go/utils"
 	"math/big"

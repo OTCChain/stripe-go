@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"github.com/otcChain/chord-go/pbs"
+	pbs "github.com/otcChain/chord-go/pbs/rpc"
 	"io/ioutil"
 	"net/http"
 	"net/url"

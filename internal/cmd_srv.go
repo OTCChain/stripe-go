@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/otcChain/chord-go/p2p"
-	"github.com/otcChain/chord-go/pbs"
+	pbs "github.com/otcChain/chord-go/pbs/cmd"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"

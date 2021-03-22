@@ -1,4 +1,4 @@
-package pbs
+package rpc
 
 func (x *RpcResponse) RpcError(msg string) {
 	x.Data = []byte(msg)
