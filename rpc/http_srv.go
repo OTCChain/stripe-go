@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	pbs "github.com/otcChain/chord-go/pbs/rpc"
 	"github.com/otcChain/chord-go/utils"
+	"github.com/otcChain/chord-go/utils/thread"
 	"io"
 	"mime"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 const (
 	maxRequestContentLength = 1024 * 1024 * 5
 	contentType             = "application/json"
+	httpThreadName          = "http rpc thread"
 )
 
 // https://www.jsonrpc.org/historical/json-rpc-over-http.html#id13
@@ -41,10 +43,10 @@ func (hr *HttpRpc) StartRpc() chan error {
 	}
 	utils.LogInst().Info().Msgf("http rpc service startup at:%s", endPoint)
 	errCh := make(chan error, 1)
-	go func() {
+	thread.NewThreadWithName(httpThreadName, func(_ chan struct{}) {
 		err := server.ListenAndServe()
 		errCh <- err
-	}()
+	}).Run()
 
 	return errCh
 }
