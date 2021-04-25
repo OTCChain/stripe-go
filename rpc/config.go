@@ -2,16 +2,23 @@ package rpc
 
 import (
 	"fmt"
+	"github.com/gorilla/websocket"
+	"net/http"
 	"time"
 )
 
 const (
-	DefaultHttpPort     = 6666
-	DefaultWsPort       = 6646
-	DefaultReadTimeout  = 30 * time.Second
-	DefaultWriteTimeout = 30 * time.Second
-	DefaultIdleTimeout  = 120 * time.Second
-	DefaultHost         = "localhost"
+	DefaultHttpPort         = 6666
+	DefaultWsPort           = 6646
+	DefaultReadTimeout      = 30 * time.Second
+	DefaultWriteTimeout     = 30 * time.Second
+	DefaultIdleTimeout      = 120 * time.Second
+	DefaultHost             = "0.0.0.0"
+	DefaultHandShakeTimeOut = time.Second * 3
+	DefaultWsBuffer         = 1 << 21
+	DefaultPongWait         = 60 * time.Second
+	DefaultPingPeriod       = (DefaultPongWait * 9) / 10
+	DefaultEventBuffer      = 1 << 10
 )
 
 type Config struct {
@@ -22,9 +29,14 @@ type Config struct {
 	WriteTimeout time.Duration `json:"http.w.timeout"`
 	IdleTimeout  time.Duration `json:"http.i.timeout"`
 
-	WsEnabled bool   `json:"ws.en"`
-	WsIP      string `json:"ws.ip"`
-	WsPort    int16  `json:"ws.port"`
+	WsEnabled      bool          `json:"ws.en"`
+	WsIP           string        `json:"ws.ip"`
+	WsPort         int16         `json:"ws.port"`
+	WsWriteTimeout time.Duration `json:"ws.w.timeout"`
+	WsIOBufferSize int           `json:"ws.bufferSize"`
+	PongWait       time.Duration `json:"ws.pong.timeout"`
+	PingPeriod     time.Duration `json:"ws.ping.timer"`
+	WsEventBufSize int           `json:"ws.event.size"`
 }
 
 func (c Config) String() string {
@@ -58,8 +70,24 @@ func DefaultConfig() *Config {
 		WriteTimeout: DefaultWriteTimeout,
 		IdleTimeout:  DefaultIdleTimeout,
 
-		WsEnabled: false,
-		WsIP:      DefaultHost,
-		WsPort:    DefaultWsPort,
+		WsEnabled:      false,
+		WsIP:           DefaultHost,
+		WsPort:         DefaultWsPort,
+		WsIOBufferSize: DefaultWsBuffer,
+		WsWriteTimeout: DefaultHandShakeTimeOut,
+		PongWait:       DefaultPongWait,
+		PingPeriod:     DefaultPingPeriod,
+		WsEventBufSize: DefaultEventBuffer,
+	}
+}
+
+func (c *Config) newUpGrader() *websocket.Upgrader {
+	return &websocket.Upgrader{
+		HandshakeTimeout: _rpcConfig.WsWriteTimeout,
+		ReadBufferSize:   int(_rpcConfig.WsIOBufferSize),
+		WriteBufferSize:  int(_rpcConfig.WsIOBufferSize),
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
 	}
 }

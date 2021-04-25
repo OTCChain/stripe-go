@@ -26,7 +26,7 @@ func NewThreadWithName(name string, runner Runner) *Thread {
 	t := &Thread{
 		ID:        _inst.ID,
 		name:      name,
-		stop:      make(chan struct{}),
+		stop:      make(chan struct{}, 1),
 		runFunc:   runner,
 		startTime: time.Now(),
 	}
@@ -48,7 +48,7 @@ func NewThread(runner Runner) *Thread {
 	return NewThreadWithName(name, runner)
 }
 
-//-------------------------------debug and trace-------------------
+// PrintAllThread -------------------------------debug and trace-------------------
 func (m *Manager) PrintAllThread() {
 	m.locker.RLock()
 	defer m.locker.RUnlock()

@@ -6,10 +6,8 @@ import (
 )
 
 type ServiceManager struct {
-	httpErrChan chan error
-	httpRpc     *HttpRpc
-	wsErrChan   chan error
-	wsRpc       *WsRpc
+	httpRpc *HttpRpc
+	wsRpc   *WsRpc
 }
 
 // HTTPTimeouts represents the configuration params for the HTTP RPC server.
@@ -52,10 +50,14 @@ func newServiceManager() *ServiceManager {
 
 func (sm *ServiceManager) StartService() error {
 	if sm.httpRpc != nil {
-		sm.httpErrChan = sm.httpRpc.StartRpc()
+		if err := sm.httpRpc.StartRpc(); err != nil {
+			return err
+		}
 	}
 	if sm.wsRpc != nil {
-		sm.wsErrChan = sm.wsRpc.StartRpc()
+		if err := sm.wsRpc.StartRpc(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"io"
 	"mime"
+	"net"
 	"net/http"
 )
 
@@ -16,6 +17,7 @@ const (
 	maxRequestContentLength = 1024 * 1024 * 5
 	contentType             = "application/json"
 	httpThreadName          = "http rpc thread"
+	websocketThreadName     = "websocket rpc thread"
 )
 
 // https://www.jsonrpc.org/historical/json-rpc-over-http.html#id13
@@ -26,29 +28,30 @@ type HttpApiRouter map[string]HttpRpcProvider
 
 type HttpRpc struct {
 	apis *http.ServeMux
+	srv  *http.Server
 }
 
-func (hr *HttpRpc) StartRpc() chan error {
+func (hr *HttpRpc) StartRpc() error {
 	endPoint := fmt.Sprintf("%s:%d", _rpcConfig.HttpIP, _rpcConfig.HttpPort)
-	server := &http.Server{
-		Addr:         endPoint,
-		Handler:      hr.apis,
-		ReadTimeout:  _rpcConfig.ReadTimeout,
-		WriteTimeout: _rpcConfig.WriteTimeout,
-		IdleTimeout:  _rpcConfig.IdleTimeout,
+	ln, err := net.Listen("tcp4", endPoint)
+	if err != nil {
+		return err
 	}
-
-	for id, cb := range HttpRpcApis {
-		hr.regService(id, cb)
-	}
-	utils.LogInst().Info().Msgf("http rpc service startup at:%s", endPoint)
-	errCh := make(chan error, 1)
 	thread.NewThreadWithName(httpThreadName, func(_ chan struct{}) {
-		err := server.ListenAndServe()
-		errCh <- err
+		utils.LogInst().Info().Msgf("http rpc service startup at:%s", endPoint)
+		err = hr.srv.Serve(ln)
+		utils.LogInst().Err(err).Str("http rpc", "Exit").Send()
+		hr.ShutDown()
 	}).Run()
+	return nil
+}
 
-	return errCh
+func (hr *HttpRpc) ShutDown() {
+	if hr.srv == nil {
+		return
+	}
+	_ = hr.srv.Close()
+	hr.srv = nil
 }
 
 func validateRequest(r *http.Request) (int, error) {
@@ -140,7 +143,6 @@ func (hr *HttpRpc) processMsg(w http.ResponseWriter, r *http.Request, provider H
 
 func (hr *HttpRpc) regService(name string, provider HttpRpcProvider) {
 	utils.LogInst().Info().Msgf("api path[%s] register success", name)
-
 	hr.apis.HandleFunc(name, func(writer http.ResponseWriter, request *http.Request) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -152,8 +154,20 @@ func (hr *HttpRpc) regService(name string, provider HttpRpcProvider) {
 }
 
 func newHttpRpc() *HttpRpc {
+	apis := http.NewServeMux()
+	server := &http.Server{
+		Handler:      apis,
+		ReadTimeout:  _rpcConfig.ReadTimeout,
+		WriteTimeout: _rpcConfig.WriteTimeout,
+		IdleTimeout:  _rpcConfig.IdleTimeout,
+	}
+
 	hr := &HttpRpc{
-		apis: http.NewServeMux(),
+		apis: apis,
+		srv:  server,
+	}
+	for id, cb := range HttpRpcApis {
+		hr.regService(id, cb)
 	}
 	return hr
 }
