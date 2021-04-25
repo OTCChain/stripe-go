@@ -2,9 +2,9 @@ package chordclient
 
 import (
 	"context"
-	"github.com/golang/protobuf/proto"
 	"github.com/otcChain/chord-go/common"
 	pbs "github.com/otcChain/chord-go/pbs/rpc"
+	"google.golang.org/protobuf/proto"
 	"math/big"
 )
 

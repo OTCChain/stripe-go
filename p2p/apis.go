@@ -18,7 +18,7 @@ func (nt *NetworkV1) initRpcApis() {
 	rpc.HttpRpcApis["/p2p/nid"] = nt.HostID
 }
 
-//--->public rpc apis
+// ApiPeesList --->public rpc apis
 func (nt *NetworkV1) ApiPeesList(request *pbs.RpcMsgItem) *pbs.RpcResponse {
 	peerStr := nt.DebugTopicPeers(string(request.Parameter))
 	return pbs.RpcOk([]byte(peerStr))
@@ -37,7 +37,7 @@ func (nt *NetworkV1) ApiPushMsg(request *pbs.RpcMsgItem) *pbs.RpcResponse {
 	return pbs.RpcOk([]byte(res))
 }
 
-//---rpc debug
+// DebugTopicMsg ---rpc debug
 func (nt *NetworkV1) DebugTopicMsg(topic, msg string) string {
 	if err := nt.msgManager.SendMsg(topic, []byte(msg)); err != nil {
 		return err.Error()

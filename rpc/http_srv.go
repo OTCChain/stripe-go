@@ -3,10 +3,10 @@ package rpc
 import (
 	"bytes"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	pbs "github.com/otcChain/chord-go/pbs/rpc"
 	"github.com/otcChain/chord-go/utils"
 	"github.com/otcChain/chord-go/utils/thread"
+	"google.golang.org/protobuf/proto"
 	"io"
 	"mime"
 	"net/http"

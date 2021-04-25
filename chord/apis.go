@@ -1,10 +1,10 @@
 package chord
 
 import (
-	"github.com/golang/protobuf/proto"
 	pbs "github.com/otcChain/chord-go/pbs/rpc"
 	"github.com/otcChain/chord-go/rpc"
 	"github.com/otcChain/chord-go/utils"
+	"google.golang.org/protobuf/proto"
 	"math/big"
 )
 
