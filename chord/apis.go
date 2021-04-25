@@ -16,7 +16,7 @@ func (cn *NodeV1) initRpcApis() {
 	rpc.HttpRpcApis["/chord/Height"] = cn.ChainHeight
 }
 
-//---------------------------Chord API-------------------------
+// ChainHeight ---------------------------Chord API-------------------------
 func (cn *NodeV1) ChainHeight(_ *pbs.RpcMsgItem) *pbs.RpcResponse {
 	return pbs.RpcOk(nil)
 }
@@ -25,7 +25,7 @@ func (cn *NodeV1) ChainID(_ *pbs.RpcMsgItem) *pbs.RpcResponse {
 	return pbs.RpcOk(_nodeConfig.ChainID.Bytes())
 }
 
-//---------------------------Account API-------------------------
+// AccountNonce ---------------------------Account API-------------------------
 func (cn *NodeV1) AccountNonce(request *pbs.RpcMsgItem) *pbs.RpcResponse {
 	var args = &pbs.AccountNonce{}
 	if err := proto.Unmarshal(request.Parameter, args); err != nil {
@@ -37,7 +37,7 @@ func (cn *NodeV1) AccountNonce(request *pbs.RpcMsgItem) *pbs.RpcResponse {
 	return pbs.RpcOk(big.NewInt(12345679890).Bytes())
 }
 
-//---------------------------TX API-------------------------
+// NewMicroTx ---------------------------TX API-------------------------
 func (cn *NodeV1) NewMicroTx(_ *pbs.RpcMsgItem) *pbs.RpcResponse {
 	return pbs.RpcOk(nil)
 }

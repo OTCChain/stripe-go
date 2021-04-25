@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/golang/protobuf/proto"
 	"github.com/otcChain/chord-go/common"
-	"github.com/otcChain/chord-go/pbs"
+	pbs "github.com/otcChain/chord-go/pbs/rpc"
 	"math/big"
 )
 

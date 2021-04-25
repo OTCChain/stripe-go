@@ -7,7 +7,7 @@ import (
 
 // Blockchain Access
 
-//ChainId retrieves the current chord ID for transaction replay protection.
+// ChainID ChainId retrieves the current chord ID for transaction replay protection.
 func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 	var result big.Int
 	data, err := ec.c.CallContext(ctx, "/chord/ID", nil)
