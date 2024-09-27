@@ -2,21 +2,28 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/otcChain/chord-go/chord"
 	"github.com/otcChain/chord-go/consensus"
-	"github.com/otcChain/chord-go/node"
 	"github.com/otcChain/chord-go/p2p"
+	"github.com/otcChain/chord-go/rpc"
 	"github.com/otcChain/chord-go/utils"
+	"github.com/otcChain/chord-go/wallet"
+	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
-	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
-const ConfFileName = "config.json"
-const DefaultBaseDir = "~/.chord"
+const (
+	DefaultBaseDir = ".chord"
+	ConfFileName   = "config.json"
+	MainNet        = "main"
+	TestNet        = "test"
+)
 
 var param struct {
-	password string
-	baseDir  string
+	baseDir     string
+	servicePort *int16
 }
 
 var InitCmd = &cobra.Command{
@@ -28,63 +35,62 @@ var InitCmd = &cobra.Command{
 }
 
 func init() {
-	InitCmd.Flags().StringVarP(&param.password, "password", "p", "",
-		"Password to init chord node wallet")
-
-	InitCmd.Flags().StringVarP(&param.baseDir, "baseDir", "d", "",
-		"Password to init chord node wallet")
+	flags := InitCmd.Flags()
+	flags.StringVarP(&param.baseDir, "baseDir", "d", DefaultBaseDir,
+		"init -d [Directory]")
 }
 
 func initNode(_ *cobra.Command, _ []string) {
-	dir := param.baseDir
-	if dir == "" {
-		dir = DefaultBaseDir
-	}
-
+	dir := utils.BaseUsrDir(param.baseDir)
 	if utils.FileExists(dir) {
 		panic("duplicate init operation! please save the old config or use -baseDir for new node config")
 	}
 
-	//var pwd = param.password
-	//if pwd == "" {
-	//	fmt.Println("Password=>")
-	//	pw, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	pwd = string(pw)
-	//}
-	//
-	//if err := account.NewAccount(param.baseDir, pwd); err != nil {
-	//	panic(err)
-	//}
-
-	defaultConf := &StoreCfg{
-		PCfg: &p2p.Config{},
-		CCfg: &consensus.Config{},
-		NCfg: &node.Config{},
+	if err := os.Mkdir(dir, os.ModePerm); err != nil {
+		panic(err)
 	}
-	bts, err := json.MarshalIndent(defaultConf, "", "\t")
+
+	if err := initDefault(dir); err != nil {
+		panic(err)
+	}
+}
+
+func initDefault(baseDir string) error {
+	conf := make(StoreCfg)
+
+	mainConf := &CfgPerNetwork{
+		Name: MainNet,
+		PCfg: p2p.DefaultConfig(true, baseDir),
+		CCfg: consensus.DefaultConfig(true, baseDir),
+		NCfg: chord.DefaultConfig(true, baseDir),
+		UCfg: &utils.Config{
+			LogLevel: zerolog.ErrorLevel,
+		},
+		WCfg: wallet.DefaultConfig(true, baseDir),
+		RCfg: rpc.DefaultConfig(),
+	}
+	conf[MainNet] = mainConf
+
+	testConf := &CfgPerNetwork{
+		Name: TestNet,
+		PCfg: p2p.DefaultConfig(false, baseDir),
+		CCfg: consensus.DefaultConfig(false, baseDir),
+		NCfg: chord.DefaultConfig(false, baseDir),
+		UCfg: &utils.Config{
+			LogLevel: zerolog.DebugLevel,
+		},
+		WCfg: wallet.DefaultConfig(false, baseDir),
+		RCfg: rpc.DefaultConfig(),
+	}
+	conf[TestNet] = testConf
+
+	bts, err := json.MarshalIndent(conf, "", "\t")
 	if err != nil {
 		panic(err)
 	}
-
-	if err := ioutil.WriteFile(param.baseDir+"/"+ConfFileName, bts, 0644); err != nil {
+	path := filepath.Join(baseDir, string(filepath.Separator), ConfFileName)
+	if err := os.WriteFile(path, bts, 0644); err != nil {
 		panic(err)
 	}
-}
-
-type StoreCfg struct {
-	PCfg *p2p.Config       `json:"p2p"`
-	CCfg *consensus.Config `json:"consensus"`
-	NCfg *node.Config      `json:"node"`
-}
-
-func (c StoreCfg) String() string {
-	s := fmt.Sprintf("\n===================System config===========================")
-	s += c.NCfg.String()
-	s += c.PCfg.String()
-	s += c.CCfg.String()
-	s += fmt.Sprintf("\n===========================================================")
-	return s
+	return nil
 }

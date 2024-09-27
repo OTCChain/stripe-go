@@ -16,3 +16,8 @@
 .idea/
 go.sum
 .pid
+/boot_dht_table/
+/boot.json
+/key.json
+/wallet/key_dir/UTC--2021-03-03T03-29-47.812245000Z--fed1rrnt6q0rq8esdq07ca9z7a4egd80ls6ckvz50w
+/chord/types/gen_access_tuple.go

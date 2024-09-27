@@ -6,13 +6,16 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n----------Consensus Config---------")
-	s += fmt.Sprintf("\n-----------------------------------")
+	s := fmt.Sprintf("\n<----------Consensus Config---------")
+	s += fmt.Sprintf("\n----------------------------------->\n")
 	return s
 }
 
-var config *Config = nil
+var _consConfig *Config = &Config{}
 
 func InitConfig(c *Config) {
-	config = c
+	_consConfig = c
+}
+func DefaultConfig(isMain bool, baseDir string) *Config {
+	return &Config{}
 }

@@ -3,17 +3,27 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/otcChain/chord-go/chord"
 	"github.com/otcChain/chord-go/cmd"
 	"github.com/otcChain/chord-go/consensus"
-	"github.com/otcChain/chord-go/node"
+	"github.com/otcChain/chord-go/internal"
 	"github.com/otcChain/chord-go/p2p"
+	"github.com/otcChain/chord-go/rpc"
+	"github.com/otcChain/chord-go/utils"
+	"github.com/otcChain/chord-go/utils/fdlimit"
+	"github.com/otcChain/chord-go/utils/thread"
+	"github.com/otcChain/chord-go/wallet"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"syscall"
+	"time"
 )
 
 type SysParam struct {
@@ -21,6 +31,11 @@ type SysParam struct {
 	baseDir  string
 	network  string
 	password string
+	keyAddr  string
+	httpIP   string
+	httpPort int16
+	wsIP     string
+	wsPort   int16
 }
 
 const (
@@ -44,25 +59,51 @@ var rootCmd = &cobra.Command{
 
 func init() {
 
-	rootCmd.Flags().BoolVarP(&param.version, "version",
+	flags := rootCmd.Flags()
+
+	flags.BoolVarP(&param.version, "version",
 		"v", false, "chord -v")
 
-	rootCmd.Flags().StringVarP(&param.network, "network",
-		"n", "jack", "chord -p [PASSWORD]")
+	flags.StringVarP(&param.network, "network",
+		"n", cmd.TestNet,
+		"chord -n|--network ["+cmd.MainNet+"|"+cmd.TestNet+"] default is "+cmd.TestNet+".")
 
-	rootCmd.Flags().StringVarP(&param.password, "password",
-		"p", "", "chord -p [PASSWORD]")
+	flags.StringVarP(&param.password, "password",
+		"p", "", "chord -p [PASSWORD OF SELECTED KEY]")
 
-	rootCmd.Flags().StringVarP(&param.baseDir, "base directory",
-		"d", cmd.DefaultBaseDir, "chord -d [base directory]")
+	flags.StringVarP(&param.keyAddr, "key",
+		"k", "", "chord -k [ADDRESS OF KEY]")
+
+	flags.StringVarP(&param.baseDir, "dir",
+		"d", cmd.DefaultBaseDir, "chord -d [BASIC DIRECTORY]")
+
+	flags.StringVar(&param.httpIP, "http.ip", "",
+		"chord --http.ip=[IP]")
+	flags.Int16Var(&param.httpPort, "http.port", -1,
+		"chord --http.port=[Port]")
+	flags.StringVar(&param.wsIP, "ws.IP", "",
+		"chord --ws.ip=[Port]")
+	flags.Int16Var(&param.wsPort, "ws.port", -1,
+		"chord --ws.port=[Port]")
 
 	rootCmd.AddCommand(cmd.InitCmd)
 	rootCmd.AddCommand(cmd.ShowCmd)
+	rootCmd.AddCommand(cmd.WalletCmd)
+	rootCmd.AddCommand(cmd.DebugCmd)
 }
 
-func InitConfig() (err error) {
-	conf := make(map[string]*cmd.StoreCfg)
-	bts, e := os.ReadFile(param.baseDir + "/" + cmd.ConfFileName)
+func main() {
+	if err := rootCmd.Execute(); err != nil {
+		panic(err)
+	}
+}
+
+func initChordConfig() (err error) {
+
+	conf := make(cmd.StoreCfg)
+	dir := utils.BaseUsrDir(param.baseDir)
+	confPath := filepath.Join(dir, string(filepath.Separator), cmd.ConfFileName)
+	bts, e := os.ReadFile(confPath)
 	if e != nil {
 		return e
 	}
@@ -79,65 +120,114 @@ func InitConfig() (err error) {
 
 	fmt.Println(result.String())
 
-	node.InitConfig(result.NCfg)
+	wallet.InitConfig(result.WCfg)
+	chord.InitConfig(result.NCfg)
 	p2p.InitConfig(result.PCfg)
 	consensus.InitConfig(result.CCfg)
+	utils.InitConfig(result.UCfg)
+
+	if param.httpPort != -1 {
+		result.RCfg.HttpEnabled = true
+		result.RCfg.HttpPort = param.httpPort
+		if param.httpIP != "" {
+			result.RCfg.HttpIP = param.httpIP
+		}
+	}
+
+	if param.wsPort != -1 {
+		result.RCfg.WsEnabled = true
+		result.RCfg.WsPort = param.wsPort
+		if param.wsIP != "" {
+			result.RCfg.WsIP = param.wsIP
+		}
+	}
+
+	rpc.InitConfig(result.RCfg)
+
 	return
 }
 
-func main() {
+func initWalletKey() error {
+	var pwd = param.password
+	if pwd == "" {
+		fmt.Println("Password=>")
+		pw, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+		if err != nil {
+			return err
+		}
+		pwd = string(pw)
+	}
+
+	if err := wallet.Inst().Active(pwd, param.keyAddr); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func initSystem() error {
+
+	if err := os.Setenv("GODEBUG", "netdns=go"); err != nil {
+		return err
+	}
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	rand.Seed(int64(time.Now().Nanosecond()))
+	limit, err := fdlimit.Maximum()
+	if err != nil {
+		return fmt.Errorf("failed to retrieve file descriptor allowance:%s", err)
+	}
+	_, err = fdlimit.Raise(uint64(limit))
+	if err != nil {
+		return fmt.Errorf("failed to raise file descriptor allowance:%s", err)
+	}
+	return nil
+}
+
+func mainRun(_ *cobra.Command, _ []string) {
 
 	if param.version {
 		fmt.Println(Version)
 		return
 	}
 
-	if err := InitConfig(); err != nil {
+	if err := initSystem(); err != nil {
 		panic(err)
 	}
 
-	if err := rootCmd.Execute(); err != nil {
+	if err := initChordConfig(); err != nil {
 		panic(err)
 	}
+
+	if err := initWalletKey(); err != nil {
+		panic(err)
+	}
+
+	thread.NewThreadWithName(internal.ThreadName, internal.StartCmdRpc).Run()
+
+	if err := chord.Inst().Start(); err != nil {
+		panic(err)
+	}
+
+	waitShutdownSignal()
 }
 
-func mainRun(_ *cobra.Command, _ []string) {
-
-	var pwd = param.password
-	if pwd == "" {
-		fmt.Println("Password=>")
-		pw, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-		if err != nil {
-			panic(err)
-		}
-		pwd = string(pw)
-	}
-
-	cfg := &node.Config{}
-	if err := node.Inst().Setup(cfg); err != nil {
-		panic(err)
-	}
-
-	node.Inst().Start()
+func waitShutdownSignal() {
 	sigCh := make(chan os.Signal, 1)
-	waitSignal(sigCh)
-}
-
-func waitSignal(sigCh chan os.Signal) {
 
 	pid := strconv.Itoa(os.Getpid())
 	fmt.Printf("\n>>>>>>>>>>chord node start at pid(%s)<<<<<<<<<<\n", pid)
-	if err := ioutil.WriteFile(param.baseDir+"/"+PidFileName, []byte(pid), 0644); err != nil {
+	path := filepath.Join(utils.BaseUsrDir(param.baseDir), string(filepath.Separator), PidFileName)
+	if err := ioutil.WriteFile(path, []byte(pid), 0644); err != nil {
 		fmt.Print("failed to write running pid", err)
 	}
 
 	signal.Notify(sigCh,
-		//syscall.SIGHUP,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 
 	sig := <-sigCh
-	node.Inst().ShutDown()
+	chord.Inst().ShutDown()
 	fmt.Printf("\n>>>>>>>>>>process finished(%s)<<<<<<<<<<\n", sig)
 }
